@@ -42,3 +42,8 @@ next-env.d.ts
 
 # local test db
 .data/
+
+# agent rules
+AGENTS.md
+CLAUDE.md
+
