@@ -49,60 +49,21 @@ export function Hero({ summary }: HeroProps) {
           )}
 
           {/* CTA Buttons */}
-          <div className="flex flex-wrap justify-center gap-4 mb-12">
+          <div className="flex flex-wrap justify-center gap-4">
             <a
               href="#leaderboard"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#22c55e] text-[#0a241b] font-bold text-sm shadow-lg shadow-[#22c55e]/25 hover:bg-[#4ade80] transition-all hover:scale-105"
+              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-[#22c55e] text-[#0a241b] font-bold text-sm shadow-lg shadow-[#22c55e]/25 hover:bg-[#4ade80] transition-all hover:scale-105"
             >
               <Trophy className="w-4 h-4" />
               View 17-Class Leaderboard
             </a>
             <a
               href="#progress"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-medium text-sm border border-white/20 transition-colors"
+              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-medium text-sm border border-white/20 transition-colors"
             >
               <ArrowDown className="w-4 h-4" />
-              Department Impact
+              Department Impact & Progress
             </a>
-          </div>
-
-          {/* Dynamic Campaign Quick Metrics */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto pt-6 border-t border-[#155e42]/60">
-            <div className="bg-[#0a241b]/60 backdrop-blur-md p-4 rounded-2xl border border-[#155e42]/60">
-              <span className="text-xs text-gray-400 uppercase tracking-wider block mb-1">
-                Total Impact
-              </span>
-              <span className="text-2xl sm:text-3xl font-bold text-[#86efac]">
-                {formatKg(summary.totalImpactKg)}
-              </span>
-            </div>
-
-            <div className="bg-[#0a241b]/60 backdrop-blur-md p-4 rounded-2xl border border-[#155e42]/60">
-              <span className="text-xs text-gray-400 uppercase tracking-wider block mb-1">
-                Department Target
-              </span>
-              <span className="text-2xl sm:text-3xl font-bold text-white">
-                {summary.targetKg ? formatKg(summary.targetKg) : 'Pending SDG'}
-              </span>
-            </div>
-
-            <div className="bg-[#0a241b]/60 backdrop-blur-md p-4 rounded-2xl border border-[#155e42]/60">
-              <span className="text-xs text-gray-400 uppercase tracking-wider block mb-1">
-                Contributing Students
-              </span>
-              <span className="text-2xl sm:text-3xl font-bold text-[#86efac]">
-                {summary.contributorCount.toLocaleString('en-IN')}
-              </span>
-            </div>
-
-            <div className="bg-[#0a241b]/60 backdrop-blur-md p-4 rounded-2xl border border-[#155e42]/60">
-              <span className="text-xs text-gray-400 uppercase tracking-wider block mb-1">
-                Contributions
-              </span>
-              <span className="text-2xl sm:text-3xl font-bold text-white">
-                {summary.contributionCount.toLocaleString('en-IN')}
-              </span>
-            </div>
           </div>
         </div>
       </div>
