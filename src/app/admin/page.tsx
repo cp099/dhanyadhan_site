@@ -52,26 +52,24 @@ export default async function AdminDashboardPage() {
         </div>
       )}
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-[#e6e2d8] shadow-xs">
+      {/* Clean Page Title & Action */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-black text-[#0a241b]">
+          <h1 className="text-2xl sm:text-3xl font-black text-[#0a241b] tracking-tight">
             Department Command Center
-          </h2>
-          <p className="text-xs text-[#526359] mt-1">
-            Master oversight for all 17 Department of Commerce classes and campaign metrics.
+          </h1>
+          <p className="text-xs text-[#526359] mt-0.5">
+            Central dashboard for all 17 Department of Commerce classes and campaign impact metrics.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <Link
-            href="/admin/classes"
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#155e42] text-white text-xs font-bold hover:bg-[#0a241b] transition-colors shadow-xs"
-          >
-            <GraduationCap className="w-4 h-4 text-[#86efac]" />
-            17 Classes Directory
-          </Link>
-        </div>
+        <Link
+          href="/admin/classes"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-[#e6e2d8] bg-white hover:bg-[#fbfaf7] text-xs font-bold text-[#155e42] shadow-2xs transition-colors self-start sm:self-auto"
+        >
+          <GraduationCap className="w-4 h-4 text-[#155e42]" />
+          <span>17 Classes Directory</span>
+        </Link>
       </div>
 
       {/* Department KPI Cards */}

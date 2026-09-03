@@ -30,8 +30,8 @@ export function AdminNavTabs() {
   const pathname = usePathname();
 
   return (
-    <div className="mt-6 border-b border-[#155e42]/60">
-      <nav className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 w-full -mb-px gap-1">
+    <div className="mt-3 border-t border-[#f0ede6]">
+      <nav className="flex space-x-1 sm:space-x-8 overflow-x-auto no-scrollbar -mb-px">
         {TABS.map((tab) => {
           const Icon = tab.icon;
           const isActive = tab.exact
@@ -42,20 +42,20 @@ export function AdminNavTabs() {
             <Link
               key={tab.href}
               href={tab.href}
-              className={`group flex items-center justify-center gap-2 py-3 px-2 text-xs sm:text-sm font-semibold transition-all border-b-2 text-center rounded-t-xl ${
+              className={`group inline-flex items-center gap-2 py-3 px-1 text-xs sm:text-sm font-semibold transition-all border-b-2 whitespace-nowrap ${
                 isActive
-                  ? 'border-[#86efac] text-[#86efac] bg-[#155e42]/50 font-bold shadow-xs'
-                  : 'border-transparent text-gray-400 hover:text-gray-200 hover:bg-white/5 hover:border-white/10'
+                  ? 'border-[#155e42] text-[#155e42] font-extrabold'
+                  : 'border-transparent text-[#526359] hover:text-[#0a241b] hover:border-gray-300'
               }`}
             >
               <Icon
-                className={`w-4 h-4 flex-shrink-0 transition-colors ${
+                className={`w-4 h-4 transition-colors ${
                   isActive
-                    ? 'text-[#86efac]'
-                    : 'text-gray-400 group-hover:text-gray-200'
+                    ? 'text-[#155e42]'
+                    : 'text-gray-400 group-hover:text-[#0a241b]'
                 }`}
               />
-              <span className="truncate">{tab.name}</span>
+              <span>{tab.name}</span>
             </Link>
           );
         })}

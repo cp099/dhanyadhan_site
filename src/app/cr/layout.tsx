@@ -1,11 +1,9 @@
 import React from 'react';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import Link from 'next/link';
 import { getUserProfile, getClass } from '@/lib/firebase/admin';
 import { AUTH_COOKIE_NAME } from '@/lib/auth';
 import { CrNavTabs } from '@/components/cr/CrNavTabs';
-import { Users, PlusCircle, History, UserCheck, LogOut, ShieldAlert } from 'lucide-react';
 
 export default async function CrLayout({
   children,
@@ -30,47 +28,32 @@ export default async function CrLayout({
 
   return (
     <div className="min-h-screen bg-[#fbfaf7]">
-      {/* CR Portal Sub-header */}
-      <div className="bg-[#0d3125] text-white border-b border-[#155e42]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#22c55e] text-[#0a241b] flex items-center justify-center font-bold">
-                CR
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-lg font-bold text-[#fbfaf7]">
-                    {classDoc?.name || 'Class Representative Console'}
-                  </h1>
-                  <span className="text-xs px-2 py-0.5 rounded-full bg-[#155e42] text-[#86efac] font-medium">
-                    {user.name}
-                  </span>
-                </div>
-                <span className="text-xs text-gray-300">
-                  Authorized Class Representative • {classDoc?.program} ({classDoc?.year})
-                </span>
-              </div>
+      {/* Crisp White Sub-Navigation Bar */}
+      <div className="bg-white border-b border-[#e6e2d8] sticky top-16 z-40 shadow-xs">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3">
+            {/* Title & Context */}
+            <div className="flex items-center gap-2">
+              <span className="font-extrabold text-sm text-[#0a241b] tracking-tight">
+                {classDoc?.name || 'Class Representative Console'}
+              </span>
+              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-50 text-[#155e42] border border-emerald-200">
+                CR: {user.name}
+              </span>
             </div>
 
-            {/* Logout / Switch */}
-            <form action="/api/auth/logout" method="POST">
-              <button
-                type="submit"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-white/10 hover:bg-white/20 text-gray-200 transition-colors"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                Sign Out
-              </button>
-            </form>
+            {/* Class info */}
+            <div className="text-xs text-[#526359] hidden sm:block">
+              {classDoc?.program} ({classDoc?.year})
+            </div>
           </div>
 
-          {/* CR Navigation Tabs (Client component with live path highlighting) */}
+          {/* Clean Underline Tabs */}
           <CrNavTabs />
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">{children}</div>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">{children}</main>
     </div>
   );
 }
