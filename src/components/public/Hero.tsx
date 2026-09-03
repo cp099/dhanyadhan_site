@@ -104,23 +104,6 @@ export function Hero({ summary }: HeroProps) {
               </span>
             </div>
           </div>
-
-          {/* Optional Configurable metrics (Total Money / Total Grain) */}
-          {(summary.totalGrainKg !== null && summary.totalGrainKg !== undefined) ||
-          (summary.totalMoney !== null && summary.totalMoney !== undefined) ? (
-            <div className="mt-4 flex flex-wrap justify-center gap-6 text-xs text-gray-300">
-              {summary.totalGrainKg !== null && summary.totalGrainKg !== undefined && (
-                <span className="bg-[#0a241b]/40 px-3 py-1 rounded-lg border border-[#155e42]/40">
-                  Physical Grain Collected: <strong className="text-white">{formatKg(summary.totalGrainKg)}</strong>
-                </span>
-              )}
-              {summary.totalMoney !== null && summary.totalMoney !== undefined && (
-                <span className="bg-[#0a241b]/40 px-3 py-1 rounded-lg border border-[#155e42]/40">
-                  Monetary Support: <strong className="text-white">{formatCurrency(summary.totalMoney)}</strong>
-                </span>
-              )}
-            </div>
-          ) : null}
         </div>
       </div>
     </section>
