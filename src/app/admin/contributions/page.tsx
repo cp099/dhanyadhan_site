@@ -178,13 +178,13 @@ export default function AdminContributionsPage() {
                     )}
                     {c.type === 'grain' && (
                       <span className="text-amber-900 font-semibold">
-                        {c.grainQuantityKg} KG {c.grainType}
+                        {c.grainQuantityKg} KG Food Grains
                       </span>
                     )}
                     {c.type === 'both' && (
                       <span>
                         <strong className="text-emerald-700">{formatCurrency(c.moneyAmount)}</strong> +{' '}
-                        <strong className="text-amber-900">{c.grainQuantityKg} KG {c.grainType}</strong>
+                        <strong className="text-amber-900">{c.grainQuantityKg} KG Food Grains</strong>
                       </span>
                     )}
                   </td>

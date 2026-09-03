@@ -244,14 +244,15 @@ export default function CrContributionsPage() {
                       </span>
                     )}
                     {c.type === 'grain' && (
-                      <span className="font-semibold text-amber-900">
-                        {c.grainQuantityKg} KG {c.grainType}
-                      </span>
+                      <span className="font-semibold text-amber-900">{c.grainQuantityKg} KG Food Grains</span>
+                    )}
+                    {c.type === 'money' && (
+                      <span className="font-semibold text-emerald-700">{formatCurrency(c.moneyAmount)}</span>
                     )}
                     {c.type === 'both' && (
                       <span>
                         <strong className="text-emerald-700">{formatCurrency(c.moneyAmount)}</strong> +{' '}
-                        <strong className="text-amber-900">{c.grainQuantityKg} KG {c.grainType}</strong>
+                        <strong className="text-amber-900">{c.grainQuantityKg} KG Food Grains</strong>
                       </span>
                     )}
                     {c.notes && <span className="block text-[10px] text-gray-400 mt-0.5">{c.notes}</span>}
@@ -364,7 +365,7 @@ export default function CrContributionsPage() {
               {(editTarget.type === 'grain' || editTarget.type === 'both') && (
                 <div>
                   <label className="block font-semibold text-[#526359] mb-1">
-                    Grain Quantity in KG ({editTarget.grainType})
+                    Food Grain Quantity (KG)
                   </label>
                   <input
                     type="number"

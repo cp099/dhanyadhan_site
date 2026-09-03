@@ -1,20 +1,17 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { CampaignConfig, AcceptedGrain } from '@/lib/types';
-import { DEMO_PRESET_CAMPAIGN } from '@/lib/constants';
+import { CampaignConfig } from '@/lib/types';
+import { formatKg } from '@/lib/utils';
 import {
   Settings,
   Save,
-  Plus,
-  Trash2,
   AlertCircle,
   CheckCircle2,
-  Sparkles,
-  Wheat,
   Coins,
   Target,
-  Eye,
+  Flame,
+  Sparkles,
 } from 'lucide-react';
 
 export default function AdminCampaignPage() {
@@ -24,22 +21,9 @@ export default function AdminCampaignPage() {
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  // Form State
-  const [name, setName] = useState('');
-  const [tagline, setTagline] = useState('');
-  const [secondaryTagline, setSecondaryTagline] = useState('');
+  // Core Configurable Campaign Values
   const [targetKg, setTargetKg] = useState<string>('');
   const [moneyToKgRate, setMoneyToKgRate] = useState<string>('');
-  const [acceptedGrains, setAcceptedGrains] = useState<AcceptedGrain[]>([]);
-  const [milestonesStr, setMilestonesStr] = useState<string>('');
-  const [showMoneyPublicly, setShowMoneyPublicly] = useState(false);
-  const [showGrainPublicly, setShowGrainPublicly] = useState(false);
-  const [status, setStatus] = useState<'draft' | 'active' | 'paused' | 'completed'>('draft');
-  const [institutionalMessaging, setInstitutionalMessaging] = useState('');
-
-  // New Grain Input State
-  const [newGrainName, setNewGrainName] = useState('');
-  const [newGrainFactor, setNewGrainFactor] = useState('1.0');
 
   async function loadConfig() {
     try {
@@ -50,17 +34,8 @@ export default function AdminCampaignPage() {
 
       const c: CampaignConfig = data.config;
       setConfig(c);
-      setName(c.name || 'DHANYADHAN');
-      setTagline(c.tagline || 'Every Grain Counts.');
-      setSecondaryTagline(c.secondaryTagline || '17 Classes. One Goal.');
       setTargetKg(c.targetKg ? String(c.targetKg) : '');
       setMoneyToKgRate(c.moneyToKgRate ? String(c.moneyToKgRate) : '');
-      setAcceptedGrains(c.acceptedGrains || []);
-      setMilestonesStr((c.milestones || []).join(', '));
-      setShowMoneyPublicly(Boolean(c.showTotalMoneyPublicly));
-      setShowGrainPublicly(Boolean(c.showTotalGrainKgPublicly));
-      setStatus(c.status || 'draft');
-      setInstitutionalMessaging(c.institutionalMessaging || '');
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -72,36 +47,16 @@ export default function AdminCampaignPage() {
     loadConfig();
   }, []);
 
-  function handleAddGrain(e: React.FormEvent) {
-    e.preventDefault();
-    if (!newGrainName.trim()) return;
+  // Automatically calculate 4 progression milestones (25%, 50%, 75%, 100%) based on targetKg
+  const numTarget = parseFloat(targetKg) || 0;
+  const autoMilestones = numTarget > 0
+    ? [0.25, 0.5, 0.75, 1.0].map((p) => Math.round(numTarget * p))
+    : [];
 
-    const id = newGrainName.trim().toLowerCase().replace(/\s+/g, '_');
-    const factor = parseFloat(newGrainFactor) || 1.0;
-
-    if (acceptedGrains.some((g) => g.id === id)) {
-      setError(`Grain type "${newGrainName}" is already in the list.`);
-      return;
-    }
-
-    setAcceptedGrains([...acceptedGrains, { id, name: newGrainName.trim(), conversionFactor: factor }]);
-    setNewGrainName('');
-    setNewGrainFactor('1.0');
-  }
-
-  function handleRemoveGrain(id: string) {
-    setAcceptedGrains(acceptedGrains.filter((g) => g.id !== id));
-  }
-
-  function loadRecommendedDemoValues() {
-    setTargetKg(String(DEMO_PRESET_CAMPAIGN.targetKg || 5000));
-    setMoneyToKgRate(String(DEMO_PRESET_CAMPAIGN.moneyToKgRate || 25));
-    setAcceptedGrains(DEMO_PRESET_CAMPAIGN.acceptedGrains || []);
-    setMilestonesStr((DEMO_PRESET_CAMPAIGN.milestones || []).join(', '));
-    setShowMoneyPublicly(true);
-    setShowGrainPublicly(true);
-    setStatus('active');
-    setSuccessMsg('Loaded recommended demonstration values. Click "Save Configuration" to apply.');
+  function loadRecommendedPreset() {
+    setTargetKg('5000');
+    setMoneyToKgRate('25');
+    setSuccessMsg('Loaded standard recommended values (5,000 KG Target • ₹25/KG). Click "Save Settings" to apply.');
   }
 
   async function handleSave(e: React.FormEvent) {
@@ -111,30 +66,21 @@ export default function AdminCampaignPage() {
     setSuccessMsg(null);
 
     try {
-      const parsedMilestones = milestonesStr
-        .split(',')
-        .map((s) => parseFloat(s.trim()))
-        .filter((n) => !isNaN(n) && n > 0)
-        .sort((a, b) => a - b);
+      const parsedTarget = targetKg ? parseFloat(targetKg) : null;
+      const parsedRate = moneyToKgRate ? parseFloat(moneyToKgRate) : null;
 
       const payload: Partial<CampaignConfig> = {
-        name: name.trim(),
-        tagline: tagline.trim(),
-        secondaryTagline: secondaryTagline.trim(),
-        targetKg: targetKg ? parseFloat(targetKg) : null,
-        moneyToKgRate: moneyToKgRate ? parseFloat(moneyToKgRate) : null,
-        acceptedGrains,
-        milestones: parsedMilestones,
-        showTotalMoneyPublicly: showMoneyPublicly,
-        showTotalGrainKgPublicly: showGrainPublicly,
-        status,
-        institutionalMessaging: institutionalMessaging.trim(),
-        isConfigured:
-          Boolean(targetKg) &&
-          parseFloat(targetKg) > 0 &&
-          Boolean(moneyToKgRate) &&
-          parseFloat(moneyToKgRate) > 0 &&
-          acceptedGrains.length > 0,
+        name: 'DHANYADHAN',
+        tagline: 'Every Grain Counts.',
+        secondaryTagline: '17 Classes. One Goal.',
+        status: 'active',
+        targetKg: parsedTarget,
+        moneyToKgRate: parsedRate,
+        milestones: autoMilestones,
+        acceptedGrains: [{ id: 'grains', name: 'Food Grains', conversionFactor: 1.0 }],
+        showTotalMoneyPublicly: true,
+        showTotalGrainKgPublicly: true,
+        isConfigured: Boolean(parsedTarget && parsedTarget > 0 && parsedRate && parsedRate > 0),
       };
 
       const res = await fetch('/api/campaign', {
@@ -147,7 +93,7 @@ export default function AdminCampaignPage() {
       if (!res.ok) throw new Error(data.error || 'Failed to update campaign configuration');
 
       setConfig(data.config);
-      setSuccessMsg('Campaign configuration saved and applied across the platform!');
+      setSuccessMsg('Campaign target & monetary conversion rate successfully saved and applied!');
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -160,26 +106,26 @@ export default function AdminCampaignPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
+    <div className="space-y-6 max-w-3xl mx-auto">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-[#e6e2d8] shadow-xs">
         <div>
           <h2 className="text-2xl font-black text-[#0a241b] flex items-center gap-2">
             <Settings className="w-6 h-6 text-[#155e42]" />
-            Campaign Configuration & Conversion Engine
+            Campaign Target & Conversion Rules
           </h2>
           <p className="text-xs text-[#526359] mt-1">
-            Configure institutional branding, targets, conversion multipliers, and public metrics visibility.
+            Configure the department impact target and the monetary conversion multiplier.
           </p>
         </div>
 
         <button
           type="button"
-          onClick={loadRecommendedDemoValues}
-          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-amber-300 bg-amber-50 text-amber-950 text-xs font-bold hover:bg-amber-100 transition-colors"
+          onClick={loadRecommendedPreset}
+          className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-emerald-300 bg-emerald-50 text-emerald-950 text-xs font-bold hover:bg-emerald-100 transition-colors shadow-2xs"
         >
-          <Sparkles className="w-4 h-4 text-amber-600" />
-          Load Demo Presets
+          <Sparkles className="w-4 h-4 text-emerald-600" />
+          Load Recommended Preset
         </button>
       </div>
 
@@ -198,239 +144,91 @@ export default function AdminCampaignPage() {
       )}
 
       <form onSubmit={handleSave} className="space-y-6">
-        {/* Section 1: Campaign Identity & Branding */}
-        <div className="bg-white p-6 sm:p-8 rounded-3xl border border-[#e6e2d8] shadow-xs space-y-4">
-          <h3 className="text-base font-bold text-[#0a241b] flex items-center gap-2">
-            <Target className="w-5 h-5 text-[#155e42]" />
-            Campaign Identity & Status
-          </h3>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Target & Monetary Conversion Card */}
+        <div className="bg-white p-6 sm:p-8 rounded-3xl border border-[#e6e2d8] shadow-xs space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {/* Target KG Input */}
             <div>
-              <label className="block text-xs font-semibold text-[#526359] uppercase tracking-wider mb-1">
-                Campaign Name
-              </label>
-              <input
-                type="text"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="DHANYADHAN"
-                className="w-full px-3 py-2 text-sm border border-[#e6e2d8] rounded-xl focus:ring-2 focus:ring-[#155e42] focus:outline-none bg-[#fbfaf7]"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-[#526359] uppercase tracking-wider mb-1">
-                Campaign Lifecycle Status
-              </label>
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value as any)}
-                className="w-full px-3 py-2 text-sm border border-[#e6e2d8] rounded-xl focus:ring-2 focus:ring-[#155e42] focus:outline-none bg-white font-medium"
-              >
-                <option value="draft">Draft (Setup in progress)</option>
-                <option value="active">Active (Public campaign live)</option>
-                <option value="paused">Paused (Submissions frozen)</option>
-                <option value="completed">Completed (Campaign concluded)</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-[#526359] uppercase tracking-wider mb-1">
-                Primary Campaign Tagline
-              </label>
-              <input
-                type="text"
-                value={tagline}
-                onChange={(e) => setTagline(e.target.value)}
-                placeholder="Every Grain Counts."
-                className="w-full px-3 py-2 text-sm border border-[#e6e2d8] rounded-xl focus:ring-2 focus:ring-[#155e42] focus:outline-none bg-[#fbfaf7]"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-[#526359] uppercase tracking-wider mb-1">
-                Secondary Campaign Tagline
-              </label>
-              <input
-                type="text"
-                value={secondaryTagline}
-                onChange={(e) => setSecondaryTagline(e.target.value)}
-                placeholder="17 Classes. One Goal."
-                className="w-full px-3 py-2 text-sm border border-[#e6e2d8] rounded-xl focus:ring-2 focus:ring-[#155e42] focus:outline-none bg-[#fbfaf7]"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Section 2: Department Target & Money Conversion Rule */}
-        <div className="bg-white p-6 sm:p-8 rounded-3xl border border-[#e6e2d8] shadow-xs space-y-4">
-          <h3 className="text-base font-bold text-[#0a241b] flex items-center gap-2">
-            <Coins className="w-5 h-5 text-emerald-600" />
-            Target & Monetary Conversion
-          </h3>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-[#526359] uppercase tracking-wider mb-1">
-                Department Collective Target (KG)
+              <label className="block text-xs font-bold text-[#0a241b] uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                <Target className="w-4 h-4 text-[#155e42]" />
+                Department Target (KG)
               </label>
               <input
                 type="number"
                 step="100"
-                min="0"
+                min="100"
+                required
                 placeholder="e.g. 5000"
                 value={targetKg}
                 onChange={(e) => setTargetKg(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-[#e6e2d8] rounded-xl focus:ring-2 focus:ring-[#155e42] focus:outline-none bg-[#fbfaf7]"
+                className="w-full px-4 py-3 text-base font-bold border border-[#e6e2d8] rounded-xl focus:ring-2 focus:ring-[#155e42] focus:outline-none bg-[#fbfaf7] text-[#0a241b]"
               />
-              <span className="text-[11px] text-[#526359] mt-1 block">
-                Target belongs to the entire department (all 17 classes combined).
+              <span className="text-[11px] text-[#526359] mt-1.5 block">
+                Total impact target across all 17 Commerce classes combined.
               </span>
             </div>
 
+            {/* Money to KG Rate Input */}
             <div>
-              <label className="block text-xs font-semibold text-[#526359] uppercase tracking-wider mb-1">
-                Money-to-KG Conversion Rate (₹ per 1 KG)
+              <label className="block text-xs font-bold text-[#0a241b] uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                <Coins className="w-4 h-4 text-emerald-600" />
+                Money-to-KG Conversion Rate
               </label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-sm">
+                <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-base">
                   ₹
                 </span>
                 <input
                   type="number"
                   step="1"
                   min="1"
+                  required
                   placeholder="e.g. 25"
                   value={moneyToKgRate}
                   onChange={(e) => setMoneyToKgRate(e.target.value)}
-                  className="w-full pl-8 pr-3 py-2 text-sm border border-[#e6e2d8] rounded-xl focus:ring-2 focus:ring-[#155e42] focus:outline-none bg-[#fbfaf7]"
+                  className="w-full pl-8 pr-4 py-3 text-base font-bold border border-[#e6e2d8] rounded-xl focus:ring-2 focus:ring-[#155e42] focus:outline-none bg-[#fbfaf7] text-[#0a241b]"
                 />
               </div>
-              <span className="text-[11px] text-[#526359] mt-1 block">
-                Example: If set to 25, a student's ₹500 donation equals 20 Equivalent KG.
+              <span className="text-[11px] text-[#526359] mt-1.5 block">
+                Amount in INR equal to 1 Equivalent KG (e.g. ₹{moneyToKgRate || '25'} = 1 KG).
               </span>
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-[#526359] uppercase tracking-wider mb-1">
-              Campaign Milestones (Comma separated KG values)
-            </label>
-            <input
-              type="text"
-              placeholder="500, 1000, 2500, 5000"
-              value={milestonesStr}
-              onChange={(e) => setMilestonesStr(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-[#e6e2d8] rounded-xl focus:ring-2 focus:ring-[#155e42] focus:outline-none bg-[#fbfaf7]"
-            />
-          </div>
-        </div>
-
-        {/* Section 3: Accepted Food Grains & Factors */}
-        <div className="bg-white p-6 sm:p-8 rounded-3xl border border-[#e6e2d8] shadow-xs space-y-4">
-          <h3 className="text-base font-bold text-[#0a241b] flex items-center gap-2">
-            <Wheat className="w-5 h-5 text-amber-700" />
-            Accepted Food Grains & Impact Multipliers
-          </h3>
-
-          <div className="space-y-2">
-            {acceptedGrains.map((g) => (
-              <div
-                key={g.id}
-                className="flex items-center justify-between p-3 rounded-2xl bg-[#fbfaf7] border border-[#e6e2d8]"
-              >
-                <div>
-                  <span className="font-bold text-sm text-[#0a241b]">{g.name}</span>
-                  <span className="text-xs text-[#526359] ml-2">
-                    Multiplier: <strong>{g.conversionFactor}x</strong> (1 KG = {g.conversionFactor} Equivalent KG)
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleRemoveGrain(g.id)}
-                  className="p-1 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"
-                  title="Remove grain"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            ))}
-          </div>
-
-          {/* Add New Grain */}
-          <div className="pt-2 flex flex-col sm:flex-row gap-2">
-            <input
-              type="text"
-              placeholder="Grain Name (e.g. Rice, Wheat, Dal)"
-              value={newGrainName}
-              onChange={(e) => setNewGrainName(e.target.value)}
-              className="flex-1 px-3 py-2 text-sm border border-[#e6e2d8] rounded-xl bg-[#fbfaf7]"
-            />
-            <input
-              type="number"
-              step="0.1"
-              min="0.1"
-              placeholder="Multiplier"
-              value={newGrainFactor}
-              onChange={(e) => setNewGrainFactor(e.target.value)}
-              className="w-28 px-3 py-2 text-sm border border-[#e6e2d8] rounded-xl bg-[#fbfaf7]"
-            />
-            <button
-              type="button"
-              onClick={handleAddGrain}
-              className="px-4 py-2 rounded-xl bg-[#155e42] text-white text-xs font-bold hover:bg-[#0a241b] flex items-center justify-center gap-1"
-            >
-              <Plus className="w-4 h-4" /> Add Grain
-            </button>
-          </div>
-        </div>
-
-        {/* Section 4: Public Visibility Toggles */}
-        <div className="bg-white p-6 sm:p-8 rounded-3xl border border-[#e6e2d8] shadow-xs space-y-4">
-          <h3 className="text-base font-bold text-[#0a241b] flex items-center gap-2">
-            <Eye className="w-5 h-5 text-blue-600" />
-            Public Metric Visibility Controls
-          </h3>
-          <p className="text-xs text-[#526359]">
-            Configure which aggregate metrics should be visible to the general public on the homepage.
-          </p>
-
-          <div className="space-y-3">
-            <label className="flex items-center gap-3 p-3 rounded-2xl border border-[#e6e2d8] bg-[#fbfaf7] cursor-pointer">
-              <input
-                type="checkbox"
-                checked={showMoneyPublicly}
-                onChange={(e) => setShowMoneyPublicly(e.target.checked)}
-                className="w-4 h-4 text-[#155e42] rounded-sm focus:ring-[#155e42]"
-              />
-              <div>
-                <span className="text-xs font-bold text-[#0a241b] block">
-                  Show Total Money Raised Publicly
-                </span>
-                <span className="text-[11px] text-[#526359]">
-                  If unchecked, overall monetary sum is hidden from public view and visible only to SDG Admins.
-                </span>
-              </div>
+          {/* Automatically Calculated Milestones Track */}
+          <div className="pt-4 border-t border-[#f4f1eb]">
+            <label className="block text-xs font-bold text-[#526359] uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <Flame className="w-4 h-4 text-amber-500" />
+              Automatically Calculated Milestones (System Managed)
             </label>
 
-            <label className="flex items-center gap-3 p-3 rounded-2xl border border-[#e6e2d8] bg-[#fbfaf7] cursor-pointer">
-              <input
-                type="checkbox"
-                checked={showGrainPublicly}
-                onChange={(e) => setShowGrainPublicly(e.target.checked)}
-                className="w-4 h-4 text-[#155e42] rounded-sm focus:ring-[#155e42]"
-              />
-              <div>
-                <span className="text-xs font-bold text-[#0a241b] block">
-                  Show Total Physical Grain KG Publicly
-                </span>
-                <span className="text-[11px] text-[#526359]">
-                  If unchecked, physical grain weight is kept internal and only the standardized Equivalent Impact score is shown.
-                </span>
+            {autoMilestones.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                {autoMilestones.map((m, idx) => {
+                  const label = ['25%', '50%', '75%', '100% Target'][idx];
+                  return (
+                    <div
+                      key={m}
+                      className="p-3 rounded-xl bg-[#fbfaf7] border border-[#e6e2d8] text-center"
+                    >
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#526359] block">
+                        {label}
+                      </span>
+                      <span className="text-base font-black text-[#155e42] block mt-0.5">
+                        {formatKg(m)}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
-            </label>
+            ) : (
+              <p className="text-xs text-gray-400 italic">
+                Enter a Department Target above to automatically compute campaign milestones.
+              </p>
+            )}
+            <span className="text-[11px] text-[#526359] mt-2 block">
+              The system dynamically partitions milestones at 25%, 50%, 75%, and 100% of the target without manual entry.
+            </span>
           </div>
         </div>
 
@@ -442,7 +240,7 @@ export default function AdminCampaignPage() {
             className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl bg-[#155e42] text-white font-extrabold text-sm hover:bg-[#0a241b] transition-all shadow-md hover:scale-105 disabled:opacity-50"
           >
             <Save className="w-5 h-5 text-[#86efac]" />
-            {saving ? 'Saving Configuration...' : 'Save & Commit Configuration'}
+            {saving ? 'Saving...' : 'Save & Commit Settings'}
           </button>
         </div>
       </form>

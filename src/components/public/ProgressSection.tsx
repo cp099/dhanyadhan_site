@@ -119,30 +119,6 @@ export function ProgressSection({ summary }: ProgressSectionProps) {
             </div>
           )}
         </div>
-
-        {/* Accepted Food Grains Guide */}
-        {summary.acceptedGrains && summary.acceptedGrains.length > 0 && (
-          <div className="max-w-4xl mx-auto">
-            <h3 className="text-lg font-bold text-[#0a241b] mb-4 text-center flex items-center justify-center gap-2">
-              <Wheat className="w-5 h-5 text-[#155e42]" />
-              Accepted Food Grains
-            </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {summary.acceptedGrains.map((g) => (
-                <div
-                  key={g.id}
-                  className="bg-white p-4 rounded-2xl border border-[#e6e2d8] text-center shadow-xs hover:border-[#155e42] transition-colors"
-                >
-                  <div className="w-10 h-10 mx-auto rounded-xl bg-[#155e42]/10 flex items-center justify-center mb-2">
-                    <Wheat className="w-5 h-5 text-[#155e42]" />
-                  </div>
-                  <h4 className="font-semibold text-sm text-[#0a241b]">{g.name}</h4>
-                  <span className="text-xs text-[#526359] block mt-0.5">Physical Grain</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </section>
   );

@@ -392,36 +392,15 @@ export default function NewContributionPage() {
 
           {/* Grain Inputs */}
           {(contributionType === 'grain' || contributionType === 'both') && (
-            <div className="p-4 bg-[#fbfaf7] rounded-2xl border border-[#e6e2d8] space-y-4">
+            <div className="p-4 bg-[#fbfaf7] rounded-2xl border border-[#e6e2d8] space-y-3">
               <h4 className="text-xs font-bold uppercase tracking-wider text-[#155e42] flex items-center gap-1.5">
-                <Wheat className="w-4 h-4" /> Physical Grain Details
+                <Wheat className="w-4 h-4" /> Food Grain Quantity
               </h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold text-[#526359] mb-1">
-                    Grain Type
-                  </label>
-                  <select
-                    value={grainType}
-                    onChange={(e) => setGrainType(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-[#e6e2d8] text-sm bg-white focus:ring-2 focus:ring-[#155e42] focus:outline-none"
-                  >
-                    {campaign?.acceptedGrains && campaign.acceptedGrains.length > 0 ? (
-                      campaign.acceptedGrains.map((g) => (
-                        <option key={g.id} value={g.name}>
-                          {g.name} ({g.conversionFactor}x multiplier)
-                        </option>
-                      ))
-                    ) : (
-                      <option value="Rice">Rice</option>
-                    )}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[#526359] mb-1">
-                    Quantity (KG)
-                  </label>
+              <div>
+                <label className="block text-xs font-semibold text-[#526359] mb-1">
+                  Food Grain Contributed (in Kilograms)
+                </label>
+                <div className="relative">
                   <input
                     type="number"
                     step="0.1"
@@ -429,9 +408,15 @@ export default function NewContributionPage() {
                     placeholder="e.g. 5 or 10.5"
                     value={grainQuantityKg}
                     onChange={(e) => setGrainQuantityKg(e.target.value)}
-                    className="w-full px-3 py-2 rounded-xl border border-[#e6e2d8] text-sm bg-white focus:ring-2 focus:ring-[#155e42] focus:outline-none"
+                    className="w-full pl-3 pr-12 py-2.5 rounded-xl border border-[#e6e2d8] text-sm bg-white focus:ring-2 focus:ring-[#155e42] focus:outline-none"
                   />
+                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-500">
+                    KG
+                  </span>
                 </div>
+                <span className="text-[11px] text-[#526359] mt-1 block">
+                  1 KG of contributed food grains = 1 Equivalent Impact KG.
+                </span>
               </div>
             </div>
           )}
