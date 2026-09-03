@@ -70,28 +70,20 @@ export function Navbar() {
           {/* Desktop Navigation Links */}
           <nav className="hidden md:flex items-center space-x-1 lg:space-x-2">
             <Link
-              href="/"
-              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                pathname === '/'
-                  ? 'bg-[#155e42] text-white'
-                  : 'text-gray-300 hover:text-white hover:bg-[#155e42]/40'
-              }`}
-            >
-              Leaderboard
-            </Link>
-            <Link
               href="/#progress"
               className="px-3 py-2 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-[#155e42]/40 transition-colors"
             >
               Campaign Progress
             </Link>
             <Link
-              href="/about"
-              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                pathname === '/about'
-                  ? 'bg-[#155e42] text-white'
-                  : 'text-gray-300 hover:text-white hover:bg-[#155e42]/40'
-              }`}
+              href="/#leaderboard"
+              className="px-3 py-2 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-[#155e42]/40 transition-colors"
+            >
+              Leaderboard
+            </Link>
+            <Link
+              href="/#about"
+              className="px-3 py-2 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-[#155e42]/40 transition-colors"
             >
               About & SDG Mission
             </Link>
@@ -150,13 +142,6 @@ export function Navbar() {
       {mobileMenuOpen && (
         <div className="md:hidden bg-[#0d3125] border-b border-[#155e42] px-4 pt-3 pb-5 space-y-2">
           <Link
-            href="/"
-            onClick={() => setMobileMenuOpen(false)}
-            className="block px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:bg-[#155e42]"
-          >
-            Leaderboard
-          </Link>
-          <Link
             href="/#progress"
             onClick={() => setMobileMenuOpen(false)}
             className="block px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:bg-[#155e42]"
@@ -164,7 +149,14 @@ export function Navbar() {
             Campaign Progress
           </Link>
           <Link
-            href="/about"
+            href="/#leaderboard"
+            onClick={() => setMobileMenuOpen(false)}
+            className="block px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:bg-[#155e42]"
+          >
+            Leaderboard
+          </Link>
+          <Link
+            href="/#about"
             onClick={() => setMobileMenuOpen(false)}
             className="block px-3 py-2 rounded-md text-base font-medium text-gray-200 hover:bg-[#155e42]"
           >

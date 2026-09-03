@@ -2,6 +2,7 @@ import { getPublicCampaignSummary, getPublicLeaderboard } from '@/lib/firebase/a
 import { Hero } from '@/components/public/Hero';
 import { ProgressSection } from '@/components/public/ProgressSection';
 import { Leaderboard } from '@/components/public/Leaderboard';
+import { AboutSection } from '@/components/public/AboutSection';
 
 // Force dynamic rendering so real-time updates from database are reflected immediately
 export const dynamic = 'force-dynamic';
@@ -18,6 +19,7 @@ export default async function HomePage() {
       <Hero summary={summary} />
       <ProgressSection summary={summary} />
       <Leaderboard items={leaderboardItems} />
+      <AboutSection />
     </div>
   );
 }
