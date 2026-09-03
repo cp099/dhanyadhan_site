@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { StudentDoc, CampaignConfig, ContributionType } from '@/lib/types';
-import { calculateEquivalentKg } from '@/lib/calculations';
 import { formatKg, formatCurrency } from '@/lib/utils';
 import {
   PlusCircle,
@@ -14,7 +13,6 @@ import {
   CheckCircle2,
   AlertCircle,
   Search,
-  Sparkles,
   History,
   Users,
   UserCheck,
@@ -83,25 +81,6 @@ export default function NewContributionPage() {
       s.name.toLowerCase().includes(studentSearch.toLowerCase()) ||
       (s.rollNo && s.rollNo.toLowerCase().includes(studentSearch.toLowerCase()))
   );
-
-  // Live estimated calculation preview
-  let calculatedPreview = 0;
-  if (campaign) {
-    try {
-      const result = calculateEquivalentKg(
-        {
-          type: contributionType,
-          moneyAmount: moneyAmount ? parseFloat(moneyAmount) : 0,
-          grainType: 'Food Grains',
-          grainQuantityKg: grainQuantityKg ? parseFloat(grainQuantityKg) : 0,
-        },
-        campaign
-      );
-      calculatedPreview = result.equivalentKg;
-    } catch {
-      calculatedPreview = 0;
-    }
-  }
 
   // Handle direct submission
   async function handleSubmit(e: React.FormEvent) {
@@ -515,17 +494,6 @@ export default function NewContributionPage() {
                   onChange={(e) => setNotes(e.target.value)}
                   className="w-full px-3 py-2 text-xs rounded-xl border border-[#e6e2d8] bg-[#fbfaf7] focus:bg-white focus:ring-2 focus:ring-[#155e42] focus:outline-none"
                 />
-              </div>
-
-              {/* Live Impact Preview Card */}
-              <div className="p-3.5 rounded-xl bg-gradient-to-r from-[#0a241b] to-[#155e42] text-white flex items-center justify-between shadow-2xs">
-                <div className="flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-[#86efac]" />
-                  <span className="text-xs font-bold text-gray-200">Impact Score:</span>
-                </div>
-                <span className="text-base font-black text-[#86efac]">
-                  +{formatKg(calculatedPreview)}
-                </span>
               </div>
 
               {/* Direct Submit Button */}
