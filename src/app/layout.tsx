@@ -17,11 +17,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="h-full scroll-smooth">
-      <body className="min-h-full flex flex-col bg-[#fbfaf7] text-[#14281f] relative">
+      <body className="min-h-full flex flex-col bg-[#fbfaf7] text-[#14281f] relative overflow-x-hidden">
+        {/* Fixed animated background layer */}
         <AnimatedBackground />
-        <Navbar />
-        <main className="flex-1">{children}</main>
-        <Footer />
+
+        {/* Content layer above background */}
+        <div className="relative z-10 flex flex-col min-h-screen">
+          <Navbar />
+          <main className="flex-1">{children}</main>
+          <Footer />
+        </div>
       </body>
     </html>
   );
