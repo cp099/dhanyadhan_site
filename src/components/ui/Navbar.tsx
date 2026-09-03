@@ -1,16 +1,52 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Sprout, Menu, X, Shield, Users, BarChart3 } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { Sprout, Menu, X, Shield, Users, LogIn, LogOut, User } from 'lucide-react';
+import { UserProfile } from '@/lib/types';
 
 export function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+  const [loadingUser, setLoadingUser] = useState(true);
 
-  const isCR = pathname?.startsWith('/cr');
-  const isAdmin = pathname?.startsWith('/admin');
+  // Check user session
+  useEffect(() => {
+    async function checkSession() {
+      try {
+        const res = await fetch('/api/auth/session');
+        const data = await res.json();
+        if (res.ok && data.user) {
+          setCurrentUser(data.user);
+        } else {
+          setCurrentUser(null);
+        }
+      } catch {
+        setCurrentUser(null);
+      } finally {
+        setLoadingUser(false);
+      }
+    }
+
+    checkSession();
+  }, [pathname]);
+
+  async function handleLogout() {
+    try {
+      await fetch('/api/auth/session', { method: 'POST' });
+      setCurrentUser(null);
+      router.push('/');
+      router.refresh();
+    } catch (e) {
+      console.error('Logout error:', e);
+    }
+  }
+
+  const isCR = currentUser?.role === 'class_admin';
+  const isAdmin = currentUser?.role === 'sdg_admin';
 
   return (
     <header className="sticky top-0 z-50 bg-[#0a241b]/95 backdrop-blur-md border-b border-[#155e42]/50 text-white">
@@ -61,30 +97,40 @@ export function Navbar() {
             </Link>
           </nav>
 
-          {/* Desktop Auth / Console Shortcuts */}
+          {/* Single Unified Authentication Portal */}
           <div className="hidden md:flex items-center space-x-3">
-            <Link
-              href="/cr"
-              className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
-                isCR
-                  ? 'bg-[#22c55e] text-[#0a241b] border-[#22c55e]'
-                  : 'border-[#22c55e]/40 text-[#86efac] hover:bg-[#22c55e]/10'
-              }`}
-            >
-              <Users className="w-3.5 h-3.5" />
-              CR Console
-            </Link>
-            <Link
-              href="/admin"
-              className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
-                isAdmin
-                  ? 'bg-amber-400 text-amber-950 border-amber-400'
-                  : 'border-amber-400/40 text-amber-300 hover:bg-amber-400/10'
-              }`}
-            >
-              <Shield className="w-3.5 h-3.5" />
-              SDG Admin
-            </Link>
+            {!loadingUser && currentUser ? (
+              <div className="flex items-center space-x-2">
+                <Link
+                  href={isAdmin ? '/admin' : '/cr'}
+                  className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all ${
+                    isAdmin
+                      ? 'bg-amber-400 text-amber-950 border-amber-400 hover:bg-amber-300'
+                      : 'bg-[#22c55e] text-[#0a241b] border-[#22c55e] hover:bg-[#4ade80]'
+                  }`}
+                >
+                  {isAdmin ? <Shield className="w-3.5 h-3.5" /> : <Users className="w-3.5 h-3.5" />}
+                  <span>{isAdmin ? 'SDG Admin Console' : `CR Console (${currentUser.classId})`}</span>
+                </Link>
+
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="p-1.5 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
+                  title="Sign Out"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-[#155e42] text-white hover:bg-[#22c55e] hover:text-[#0a241b] border border-[#22c55e]/40 transition-all shadow-xs"
+              >
+                <LogIn className="w-3.5 h-3.5" />
+                Sign In
+              </Link>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -124,23 +170,40 @@ export function Navbar() {
           >
             About & SDG Mission
           </Link>
-          <div className="pt-3 border-t border-[#155e42] flex flex-col space-y-2">
-            <Link
-              href="/cr"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-[#155e42] text-[#86efac] font-semibold text-sm"
-            >
-              <Users className="w-4 h-4" />
-              CR Console (Class Access)
-            </Link>
-            <Link
-              href="/admin"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-amber-500/20 border border-amber-400/40 text-amber-300 font-semibold text-sm"
-            >
-              <Shield className="w-4 h-4" />
-              SDG Admin Console
-            </Link>
+
+          <div className="pt-3 border-t border-[#155e42]">
+            {currentUser ? (
+              <div className="space-y-2">
+                <Link
+                  href={isAdmin ? '/admin' : '/cr'}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#22c55e] text-[#0a241b] font-bold text-sm"
+                >
+                  {isAdmin ? <Shield className="w-4 h-4" /> : <Users className="w-4 h-4" />}
+                  <span>{isAdmin ? 'SDG Admin Console' : `CR Console (${currentUser.classId})`}</span>
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    handleLogout();
+                  }}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-white/10 text-gray-300 font-semibold text-xs"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  Sign Out
+                </button>
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#155e42] text-white font-bold text-sm"
+              >
+                <LogIn className="w-4 h-4" />
+                Sign In
+              </Link>
+            )}
           </div>
         </div>
       )}
