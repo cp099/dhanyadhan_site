@@ -59,11 +59,6 @@ export function Footer() {
                   About & SDG Mission
                 </Link>
               </li>
-              <li>
-                <Link href="/login" className="hover:text-white transition-colors">
-                  Sign In (CR & Admin Portal)
-                </Link>
-              </li>
             </ul>
           </div>
 

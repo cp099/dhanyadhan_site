@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Sprout, Menu, X, Shield, Users, LogIn, LogOut, User } from 'lucide-react';
+import { Sprout, Menu, X, Shield, Users, LogOut, User } from 'lucide-react';
 import { UserProfile } from '@/lib/types';
 
 export function Navbar() {
@@ -114,15 +114,7 @@ export function Navbar() {
                   <LogOut className="w-4 h-4" />
                 </button>
               </div>
-            ) : (
-              <Link
-                href="/login"
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-[#155e42] text-white hover:bg-[#22c55e] hover:text-[#0a241b] border border-[#22c55e]/40 transition-all shadow-xs"
-              >
-                <LogIn className="w-3.5 h-3.5" />
-                Sign In
-              </Link>
-            )}
+            ) : null}
           </div>
 
           {/* Mobile Menu Button */}
@@ -186,16 +178,7 @@ export function Navbar() {
                   Sign Out
                 </button>
               </div>
-            ) : (
-              <Link
-                href="/login"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#155e42] text-white font-bold text-sm"
-              >
-                <LogIn className="w-4 h-4" />
-                Sign In
-              </Link>
-            )}
+            ) : null}
           </div>
         </div>
       )}
