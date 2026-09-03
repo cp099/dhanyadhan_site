@@ -52,24 +52,14 @@ export default async function AdminDashboardPage() {
         </div>
       )}
 
-      {/* Clean Page Title & Action */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-[#0a241b] tracking-tight">
-            Department Command Center
-          </h1>
-          <p className="text-xs text-[#526359] mt-0.5">
-            Central dashboard for all 17 Department of Commerce classes and campaign impact metrics.
-          </p>
-        </div>
-
-        <Link
-          href="/admin/classes"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-[#e6e2d8] bg-white hover:bg-[#fbfaf7] text-xs font-bold text-[#155e42] shadow-2xs transition-colors self-start sm:self-auto"
-        >
-          <GraduationCap className="w-4 h-4 text-[#155e42]" />
-          <span>17 Classes Directory</span>
-        </Link>
+      {/* Clean Page Title */}
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-black text-[#0a241b] tracking-tight">
+          Department Command Center
+        </h1>
+        <p className="text-xs text-[#526359] mt-0.5">
+          Central dashboard for all 17 Department of Commerce classes and campaign impact metrics.
+        </p>
       </div>
 
       {/* Department KPI Cards */}
