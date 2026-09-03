@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { getUserProfile } from '@/lib/firebase/admin';
 import { AUTH_COOKIE_NAME } from '@/lib/auth';
+import { AdminNavTabs } from '@/components/admin/AdminNavTabs';
 import {
   Shield,
   LayoutDashboard,
@@ -70,65 +71,8 @@ export default async function AdminLayout({
             </form>
           </div>
 
-          {/* Admin Navigation Tabs */}
-          <nav className="flex space-x-1 sm:space-x-2 mt-5 overflow-x-auto pb-1 text-xs sm:text-sm font-semibold">
-            <Link
-              href="/admin"
-              className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors flex items-center gap-1.5 whitespace-nowrap"
-            >
-              <LayoutDashboard className="w-4 h-4" />
-              Command Center
-            </Link>
-            <Link
-              href="/admin/classes"
-              className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors flex items-center gap-1.5 whitespace-nowrap"
-            >
-              <GraduationCap className="w-4 h-4" />
-              17 Classes
-            </Link>
-            <Link
-              href="/admin/students"
-              className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors flex items-center gap-1.5 whitespace-nowrap"
-            >
-              <Users className="w-4 h-4" />
-              Student Rosters
-            </Link>
-            <Link
-              href="/admin/contributions"
-              className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors flex items-center gap-1.5 whitespace-nowrap"
-            >
-              <History className="w-4 h-4" />
-              All Contributions
-            </Link>
-            <Link
-              href="/admin/campaign"
-              className="px-3 py-1.5 rounded-lg bg-amber-400/20 text-amber-300 border border-amber-400/30 hover:bg-amber-400/30 transition-colors flex items-center gap-1.5 whitespace-nowrap"
-            >
-              <Settings className="w-4 h-4 text-amber-400" />
-              Campaign & Rules
-            </Link>
-            <Link
-              href="/admin/cr-management"
-              className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors flex items-center gap-1.5 whitespace-nowrap"
-            >
-              <UserPlus className="w-4 h-4" />
-              CR Accounts
-            </Link>
-            <Link
-              href="/admin/reports"
-              className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors flex items-center gap-1.5 whitespace-nowrap"
-            >
-              <FileSpreadsheet className="w-4 h-4" />
-              Reports & CSV
-            </Link>
-            <Link
-              href="/admin/audit-logs"
-              className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors flex items-center gap-1.5 whitespace-nowrap"
-            >
-              <ScrollText className="w-4 h-4" />
-              Audit Logs
-            </Link>
-          </nav>
+          {/* Admin Navigation Tabs (Client component with live path highlighting) */}
+          <AdminNavTabs />
         </div>
       </div>
 

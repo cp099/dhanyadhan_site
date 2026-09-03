@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { getUserProfile, getClass } from '@/lib/firebase/admin';
 import { AUTH_COOKIE_NAME } from '@/lib/auth';
+import { CrNavTabs } from '@/components/cr/CrNavTabs';
 import { Users, PlusCircle, History, UserCheck, LogOut, ShieldAlert } from 'lucide-react';
 
 export default async function CrLayout({
@@ -64,37 +65,8 @@ export default async function CrLayout({
             </form>
           </div>
 
-          {/* CR Navigation Tabs */}
-          <nav className="flex space-x-2 mt-4 overflow-x-auto pb-1 text-sm font-medium">
-            <Link
-              href="/cr"
-              className="px-3.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors flex items-center gap-1.5"
-            >
-              <Users className="w-4 h-4" />
-              Class Overview
-            </Link>
-            <Link
-              href="/cr/contributions/new"
-              className="px-3.5 py-1.5 rounded-lg bg-[#22c55e] text-[#0a241b] font-bold hover:bg-[#4ade80] transition-colors flex items-center gap-1.5 shadow-sm"
-            >
-              <PlusCircle className="w-4 h-4" />
-              Record Contribution
-            </Link>
-            <Link
-              href="/cr/contributions"
-              className="px-3.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors flex items-center gap-1.5"
-            >
-              <History className="w-4 h-4" />
-              Contribution History
-            </Link>
-            <Link
-              href="/cr/students"
-              className="px-3.5 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition-colors flex items-center gap-1.5"
-            >
-              <UserCheck className="w-4 h-4" />
-              Class Roster & Records
-            </Link>
-          </nav>
+          {/* CR Navigation Tabs (Client component with live path highlighting) */}
+          <CrNavTabs />
         </div>
       </div>
 
