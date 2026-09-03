@@ -1,8 +1,6 @@
 import React from 'react';
-import Link from 'next/link';
-import { Sprout, Trophy, Users, Heart, ArrowDown, Sparkles, AlertCircle } from 'lucide-react';
+import { Sprout, AlertCircle } from 'lucide-react';
 import { PublicCampaignSummary } from '@/lib/types';
-import { formatKg, formatCurrency } from '@/lib/utils';
 
 interface HeroProps {
   summary: PublicCampaignSummary;
@@ -47,24 +45,6 @@ export function Hero({ summary }: HeroProps) {
               </span>
             </div>
           )}
-
-          {/* CTA Buttons */}
-          <div className="flex flex-wrap justify-center gap-4">
-            <a
-              href="#leaderboard"
-              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-[#22c55e] text-[#0a241b] font-bold text-sm shadow-lg shadow-[#22c55e]/25 hover:bg-[#4ade80] transition-all hover:scale-105"
-            >
-              <Trophy className="w-4 h-4" />
-              View 17-Class Leaderboard
-            </a>
-            <a
-              href="#progress"
-              className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-medium text-sm border border-white/20 transition-colors"
-            >
-              <ArrowDown className="w-4 h-4" />
-              Department Impact & Progress
-            </a>
-          </div>
         </div>
       </div>
     </section>
