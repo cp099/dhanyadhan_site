@@ -1,0 +1,90 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    
+    function isSdgAdmin() {
+      return isAuthenticated() && getUserData().role == 'sdg_admin';
+    }
+    
+    function isClassAdmin(classId) {
+      return isAuthenticated() && 
+        getUserData().role == 'class_admin' && 
+        getUserData().classId == classId;
+    }
+
+    // 1. PUBLIC-SAFE DATA (World Readable, Server/Admin Writable Only)
+    match /publicCampaign/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /publicLeaderboard/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /publicClassLeaderboards/{classId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // 2. CAMPAIGN CONFIGURATION
+    match /campaign/{docId} {
+      allow read: if true;
+      allow write: if isSdgAdmin();
+    }
+
+    // 3. CLASSES (Read basic info allowed for authenticated or public, write restricted)
+    match /classes/{classId} {
+      allow read: if true;
+      allow write: if isSdgAdmin();
+    }
+
+    // 4. STUDENTS (Private individual student metrics)
+    // CR of that class or SDG Admin only!
+    match /students/{studentId} {
+      allow read: if isSdgAdmin() || (resource != null && isClassAdmin(resource.data.classId));
+      allow create: if isSdgAdmin() || isClassAdmin(request.resource.data.classId);
+      allow update: if isSdgAdmin() || (
+        isClassAdmin(resource.data.classId) && 
+        request.resource.data.classId == resource.data.classId
+      );
+      allow delete: if isSdgAdmin();
+    }
+
+    // 5. CONTRIBUTIONS (Private transaction history)
+    // CR of that class or SDG Admin only!
+    match /contributions/{contributionId} {
+      allow read: if isSdgAdmin() || (resource != null && isClassAdmin(resource.data.classId));
+      allow create: if isSdgAdmin() || isClassAdmin(request.resource.data.classId);
+      allow update: if isSdgAdmin() || (
+        isClassAdmin(resource.data.classId) && 
+        request.resource.data.classId == resource.data.classId
+      );
+      allow delete: if isSdgAdmin() || (resource != null && isClassAdmin(resource.data.classId));
+    }
+
+    // 6. USERS (Roles & CR assignments)
+    // Users can read their own profile, only SDG Admin can write/assign roles & classes
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isSdgAdmin());
+      allow write: if isSdgAdmin();
+    }
+
+    // 7. AUDIT LOGS (SDG Admin only)
+    match /auditLogs/{logId} {
+      allow read: if isSdgAdmin();
+      allow write: if false; // Only written through trusted server/admin SDK
+    }
+  }
+}
