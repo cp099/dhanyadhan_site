@@ -15,7 +15,7 @@ export default function AdminReportsPage() {
   const [selectedClass, setSelectedClass] = useState(OFFICIAL_CLASSES[0].id);
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto">
+    <div className="space-y-8 w-full">
       {/* Header */}
       <div className="bg-white p-6 rounded-3xl border border-[#e6e2d8] shadow-xs">
         <h2 className="text-2xl font-black text-[#0a241b] flex items-center gap-2">

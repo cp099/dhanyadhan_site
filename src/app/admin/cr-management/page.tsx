@@ -72,7 +72,7 @@ export default function AdminCrManagementPage() {
   const crUsers = users.filter((u) => u.role === 'class_admin');
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto">
+    <div className="space-y-6 w-full">
       <div className="bg-white p-6 rounded-3xl border border-[#e6e2d8] shadow-xs">
         <h2 className="text-2xl font-black text-[#0a241b] flex items-center gap-2">
           <UserPlus className="w-6 h-6 text-[#155e42]" />

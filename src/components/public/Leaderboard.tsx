@@ -73,7 +73,7 @@ export function Leaderboard({ items }: LeaderboardProps) {
   }
 
   return (
-    <section id="leaderboard" className="scroll-mt-20 py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="leaderboard" className="scroll-mt-20 py-16 w-full max-w-[1700px] mx-auto px-4 sm:px-8 lg:px-12">
       {/* Header */}
       <div className="text-center max-w-3xl mx-auto mb-12">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#155e42]/10 text-[#155e42] text-xs font-bold uppercase tracking-wider mb-3">

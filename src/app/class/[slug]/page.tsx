@@ -41,7 +41,7 @@ export default async function ClassDetailPage({ params }: PageProps) {
     : 0;
 
   return (
-    <div className="py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="py-12 w-full max-w-[1700px] mx-auto px-4 sm:px-8 lg:px-12">
       {/* Back to Leaderboard navigation */}
       <div className="mb-6">
         <Link

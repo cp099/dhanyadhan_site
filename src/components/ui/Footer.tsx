@@ -17,7 +17,7 @@ function GithubIcon({ className = 'w-3.5 h-3.5' }: { className?: string }) {
 export function Footer() {
   return (
     <footer className="bg-[#0a241b] text-white border-t border-[#155e42]/40 mt-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="w-full max-w-[1700px] mx-auto px-4 sm:px-8 lg:px-12 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Col 1: Brand & Mission */}
           <div className="space-y-4 md:col-span-1">
