@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Navbar } from '@/components/ui/Navbar';
 import { Footer } from '@/components/ui/Footer';
+import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
 
 export const metadata: Metadata = {
   title: 'DHANYADHAN | Department of Commerce • SDG Cell',
@@ -16,7 +17,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="h-full scroll-smooth">
-      <body className="min-h-full flex flex-col bg-[#fbfaf7] text-[#14281f]">
+      <body className="min-h-full flex flex-col bg-[#fbfaf7] text-[#14281f] relative">
+        <AnimatedBackground />
         <Navbar />
         <main className="flex-1">{children}</main>
         <Footer />

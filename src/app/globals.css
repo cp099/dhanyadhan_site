@@ -64,3 +64,117 @@ body {
   transform: translateY(-2px);
   box-shadow: 0 12px 24px -10px rgba(10, 36, 27, 0.1);
 }
+
+/* Animated SVG Background Utilities */
+@keyframes driftSlow1 {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(30px, -25px, 0) scale(1.08);
+  }
+}
+
+@keyframes driftSlow2 {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(-35px, 20px, 0) scale(0.95);
+  }
+}
+
+@keyframes driftSlow3 {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(20px, 35px, 0) scale(1.05);
+  }
+}
+
+@keyframes waveSlow1 {
+  0%, 100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(-20px, 12px, 0);
+  }
+}
+
+@keyframes waveSlow2 {
+  0%, 100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(25px, -15px, 0);
+  }
+}
+
+@keyframes floatGrain1 {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(10px, -18px, 0) rotate(8deg);
+  }
+}
+
+@keyframes floatGrain2 {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(-12px, -24px, 0) rotate(-10deg);
+  }
+}
+
+@keyframes floatGrain3 {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(8px, -15px, 0) rotate(6deg);
+  }
+}
+
+.animate-drift-slow-1 {
+  animation: driftSlow1 24s ease-in-out infinite;
+  will-change: transform;
+}
+
+.animate-drift-slow-2 {
+  animation: driftSlow2 28s ease-in-out infinite;
+  will-change: transform;
+}
+
+.animate-drift-slow-3 {
+  animation: driftSlow3 22s ease-in-out infinite;
+  will-change: transform;
+}
+
+.animate-wave-slow-1 {
+  animation: waveSlow1 20s ease-in-out infinite;
+  will-change: transform;
+}
+
+.animate-wave-slow-2 {
+  animation: waveSlow2 26s ease-in-out infinite;
+  will-change: transform;
+}
+
+.animate-float-grain-1 {
+  animation: floatGrain1 16s ease-in-out infinite;
+  will-change: transform;
+}
+
+.animate-float-grain-2 {
+  animation: floatGrain2 21s ease-in-out infinite;
+  will-change: transform;
+}
+
+.animate-float-grain-3 {
+  animation: floatGrain3 18s ease-in-out infinite;
+  will-change: transform;
+}
+
