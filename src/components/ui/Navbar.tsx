@@ -50,7 +50,7 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 bg-[#0a241b]/95 backdrop-blur-md border-b border-[#155e42]/50 text-white">
-      <div className="w-full max-w-[1700px] mx-auto px-4 sm:px-8 lg:px-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Brand Logo & Name */}
           <Link href="/" className="flex items-center space-x-3 group">

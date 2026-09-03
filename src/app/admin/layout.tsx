@@ -26,7 +26,7 @@ export default async function AdminLayout({
     <div className="min-h-screen bg-[#fbfaf7]">
       {/* Sleek, Crisp White Sub-Navigation Bar */}
       <div className="bg-white border-b border-[#e6e2d8] sticky top-16 z-40 shadow-xs">
-        <div className="w-full max-w-[1700px] mx-auto px-4 sm:px-8 lg:px-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3">
             {/* Title & Context */}
             <div className="flex items-center gap-2">
@@ -50,7 +50,7 @@ export default async function AdminLayout({
       </div>
 
       {/* Main Content Workspace */}
-      <main className="w-full max-w-[1700px] mx-auto px-4 sm:px-8 lg:px-12 py-8">{children}</main>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">{children}</main>
     </div>
   );
 }

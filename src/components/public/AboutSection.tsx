@@ -6,7 +6,7 @@ import { Sprout, Target, ShieldCheck, HeartHandshake, Wheat, Globe2 } from 'luci
 export function AboutSection() {
   return (
     <section id="about" className="scroll-mt-20 py-20 bg-white border-t border-[#e6e2d8]">
-      <div className="w-full max-w-[1700px] mx-auto px-4 sm:px-8 lg:px-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-14">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#155e42]/10 text-[#155e42] text-xs font-bold uppercase tracking-wider mb-3">

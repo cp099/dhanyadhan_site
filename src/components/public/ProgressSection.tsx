@@ -15,7 +15,7 @@ export function ProgressSection({ summary }: ProgressSectionProps) {
 
   return (
     <section id="progress" className="scroll-mt-20 py-16 bg-[#f4f1eb] border-y border-[#e6e2d8]">
-      <div className="w-full max-w-[1700px] mx-auto px-4 sm:px-8 lg:px-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-12">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#155e42]/10 text-[#155e42] text-xs font-bold uppercase tracking-wider mb-3">
             <Target className="w-4 h-4" />

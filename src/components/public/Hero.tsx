@@ -15,7 +15,7 @@ export function Hero({ summary }: HeroProps) {
         <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-[#86efac] rounded-full filter blur-3xl"></div>
       </div>
 
-      <div className="relative w-full max-w-[1700px] mx-auto px-4 sm:px-8 lg:px-12">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto">
           {/* Institutional Badge */}
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#22c55e]/15 border border-[#22c55e]/30 text-[#86efac] text-xs font-semibold uppercase tracking-wider mb-6 shadow-sm">
