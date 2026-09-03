@@ -3,9 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { StudentDoc, CampaignConfig, ContributionType, ContributionDoc } from '@/lib/types';
+import { StudentDoc, CampaignConfig, ContributionType } from '@/lib/types';
 import { calculateEquivalentKg } from '@/lib/calculations';
-import { formatKg, formatCurrency, formatDate } from '@/lib/utils';
+import { formatKg, formatCurrency } from '@/lib/utils';
 import {
   PlusCircle,
   Coins,
@@ -17,8 +17,6 @@ import {
   Sparkles,
   History,
   Users,
-  Clock,
-  ArrowRight,
   UserCheck,
 } from 'lucide-react';
 
@@ -32,7 +30,6 @@ export default function NewContributionPage() {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const [students, setStudents] = useState<StudentDoc[]>([]);
-  const [recentContributions, setRecentContributions] = useState<ContributionDoc[]>([]);
   const [campaign, setCampaign] = useState<CampaignConfig | null>(null);
   const [userClassId, setUserClassId] = useState<string>('');
 
@@ -44,7 +41,7 @@ export default function NewContributionPage() {
   const [grainQuantityKg, setGrainQuantityKg] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
 
-  // Fetch student roster, campaign config, and recent contributions
+  // Fetch student roster and campaign config
   useEffect(() => {
     async function loadData() {
       try {
@@ -59,18 +56,15 @@ export default function NewContributionPage() {
         const classId = sessionData.user.classId || '2-bcom-afa';
         setUserClassId(classId);
 
-        const [studentsRes, contribRes, campRes] = await Promise.all([
+        const [studentsRes, campRes] = await Promise.all([
           fetch(`/api/students?classId=${classId}`),
-          fetch(`/api/contributions?classId=${classId}`),
           fetch('/api/campaign'),
         ]);
 
         const sData = await studentsRes.json();
-        const cData = await contribRes.json();
         const campData = await campRes.json();
 
         if (sData.students) setStudents(sData.students);
-        if (cData.contributions) setRecentContributions(cData.contributions);
         if (campData.config) setCampaign(campData.config);
       } catch (err: any) {
         setError(err.message || 'Failed to initialize form.');
@@ -170,17 +164,10 @@ export default function NewContributionPage() {
       setGrainQuantityKg('');
       setNotes('');
 
-      // Refresh data
-      const [refreshedStudents, refreshedContribs] = await Promise.all([
-        fetch(`/api/students?classId=${userClassId}`),
-        fetch(`/api/contributions?classId=${userClassId}`),
-      ]);
-
+      // Refresh student roster
+      const refreshedStudents = await fetch(`/api/students?classId=${userClassId}`);
       const sData = await refreshedStudents.json();
-      const cData = await refreshedContribs.json();
-
       if (sData.students) setStudents(sData.students);
-      if (cData.contributions) setRecentContributions(cData.contributions);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -551,46 +538,6 @@ export default function NewContributionPage() {
                 <span>{submitting ? 'Recording...' : 'Record Contribution Now'}</span>
               </button>
             </form>
-          </div>
-
-          {/* Recent Submissions Feed */}
-          <div className="bg-white rounded-2xl border border-[#e6e2d8] p-5 shadow-xs space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-[#f0ede6]">
-              <span className="text-xs font-bold text-[#0a241b] flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-[#155e42]" />
-                Recent Class Submissions
-              </span>
-              <Link href="/cr/contributions" className="text-[11px] text-[#155e42] hover:underline font-semibold">
-                View All →
-              </Link>
-            </div>
-
-            <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-              {recentContributions.slice(0, 4).map((c) => (
-                <div
-                  key={c.id}
-                  className="p-2.5 rounded-xl border border-[#e6e2d8] bg-[#fbfaf7] flex items-center justify-between gap-2 text-xs"
-                >
-                  <div className="min-w-0">
-                    <strong className="text-[#0a241b] block truncate">{c.studentName}</strong>
-                    <span className="text-[10px] text-gray-500 block">
-                      {c.type === 'grain' && `${c.grainQuantityKg} KG Grain`}
-                      {c.type === 'money' && formatCurrency(c.moneyAmount)}
-                      {c.type === 'both' && `${c.grainQuantityKg} KG + ${formatCurrency(c.moneyAmount)}`}
-                    </span>
-                  </div>
-                  <span className="text-xs font-black text-[#155e42] flex-shrink-0">
-                    +{formatKg(c.equivalentKg)}
-                  </span>
-                </div>
-              ))}
-
-              {recentContributions.length === 0 && (
-                <div className="py-4 text-center text-xs text-gray-400">
-                  No contributions recorded yet.
-                </div>
-              )}
-            </div>
           </div>
         </div>
       </div>
