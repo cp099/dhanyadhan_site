@@ -1,26 +1,42 @@
 @import "tailwindcss";
 
 :root {
-  --bg-sand: #fbfaf7;
+  --bg-sand: #fcf9f3;
   --bg-surface: #f4f1eb;
   --forest-950: #0a241b;
   --forest-900: #0d3125;
   --forest-800: #155e42;
   --forest-700: #1a7a56;
+  --secondary-brand: #256a4d;
   --emerald-600: #16a34a;
   --emerald-500: #22c55e;
+  --gold-amber: #d97706;
+  --sdg-hunger: #e5243b;
+  --sdg-action: #bf8b2e;
   --sand-card: #ffffff;
   --sand-border: #e6e2d8;
-  --text-primary: #14281f;
+  --text-primary: #1c1c18;
   --text-muted: #526359;
 }
 
 body {
   background-color: var(--bg-sand);
   color: var(--text-primary);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: var(--font-body), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, .font-headline {
+  font-family: var(--font-headline), -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.ambient-shadow {
+  box-shadow: 0px 4px 16px rgba(10, 36, 27, 0.05);
+}
+
+.card-shadow {
+  box-shadow: 0px 4px 12px rgba(10, 36, 27, 0.04);
 }
 
 /* Custom scrollbar */

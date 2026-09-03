@@ -233,10 +233,10 @@ export default function NewContributionPage() {
       {/* Balanced 2-Column Wide Workspace */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* LEFT COLUMN (7 Cols): Interactive Class Roster Table */}
-        <div className="lg:col-span-7 bg-white rounded-2xl border border-[#e6e2d8] p-6 shadow-xs space-y-4">
+        <div className="lg:col-span-7 bg-white rounded-3xl border border-[#e6e2d8] p-6 ambient-shadow space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#f0ede6]">
             <div>
-              <h2 className="text-base font-bold text-[#0a241b] flex items-center gap-2">
+              <h2 className="text-base font-black font-headline text-[#0a241b] flex items-center gap-2">
                 <Users className="w-4 h-4 text-[#155e42]" />
                 Class Student Roster
               </h2>
@@ -332,9 +332,9 @@ export default function NewContributionPage() {
 
         {/* RIGHT COLUMN (5 Cols): Compact Entry Card (Sticky on desktop) */}
         <div className="lg:col-span-5 space-y-6 lg:sticky lg:top-32">
-          <div className="bg-white rounded-2xl border border-[#e6e2d8] p-6 shadow-xs space-y-5">
+          <div className="bg-white rounded-3xl border border-[#e6e2d8] p-6 ambient-shadow space-y-5">
             <div className="flex items-center justify-between pb-3 border-b border-[#f0ede6]">
-              <h2 className="text-base font-bold text-[#0a241b] flex items-center gap-2">
+              <h2 className="text-base font-black font-headline text-[#0a241b] flex items-center gap-2">
                 <PlusCircle className="w-4 h-4 text-[#155e42]" />
                 Record Contribution
               </h2>

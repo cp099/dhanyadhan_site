@@ -1,8 +1,21 @@
 import type { Metadata } from 'next';
+import { Plus_Jakarta_Sans, Inter } from 'next/font/google';
 import './globals.css';
 import { Navbar } from '@/components/ui/Navbar';
 import { Footer } from '@/components/ui/Footer';
 import { AnimatedBackground } from '@/components/ui/AnimatedBackground';
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  variable: '--font-headline',
+  display: 'swap',
+});
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-body',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: 'DHANYADHAN | Department of Commerce • SDG Cell',
@@ -16,8 +29,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="h-full scroll-smooth">
-      <body className="min-h-full flex flex-col bg-[#fbfaf7] text-[#14281f] relative overflow-x-hidden">
+    <html lang="en" className={`h-full scroll-smooth ${plusJakartaSans.variable} ${inter.variable}`}>
+      <body className="min-h-full flex flex-col bg-[#fcf9f3] text-[#1c1c18] font-sans relative overflow-x-hidden antialiased">
         {/* Fixed animated background layer */}
         <AnimatedBackground />
 

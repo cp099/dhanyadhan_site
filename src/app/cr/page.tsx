@@ -19,6 +19,7 @@ import {
   Award,
   ArrowUpRight,
   TrendingUp,
+  Sparkles,
 } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
@@ -37,7 +38,7 @@ export default async function CrDashboardPage() {
   ]);
 
   if (!classDoc) {
-    return <div>Class not found.</div>;
+    return <div className="p-8 text-center text-sm text-[#526359]">Class not found.</div>;
   }
 
   // Calculate competitor gaps
@@ -57,95 +58,113 @@ export default async function CrDashboardPage() {
   return (
     <div className="space-y-8">
       {/* Welcome & Quick Action */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-[#e6e2d8] shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 sm:p-8 rounded-3xl border border-[#e6e2d8] ambient-shadow">
         <div>
-          <h2 className="text-2xl font-black text-[#0a241b]">
+          <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-[#155e42]/10 text-[#155e42] text-[11px] font-bold uppercase tracking-wider mb-2">
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Class Representative Portal</span>
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-black font-headline text-[#0a241b] tracking-tight">
             {classDoc.name} Dashboard
           </h2>
-          <p className="text-sm text-[#526359] mt-1">
+          <p className="text-xs sm:text-sm text-[#526359] mt-0.5">
             Tracking contributions and competitive standing for {classDoc.program} ({classDoc.year}).
           </p>
         </div>
         <Link
           href="/cr/contributions/new"
-          className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-[#155e42] text-white font-bold text-sm hover:bg-[#0a241b] transition-colors shadow-sm"
+          className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-[#155e42] text-white font-bold text-xs hover:bg-[#0a241b] transition-all shadow-sm flex-shrink-0"
         >
-          <PlusCircle className="w-5 h-5 text-[#86efac]" />
-          Record New Contribution
+          <PlusCircle className="w-4 h-4 text-[#86efac]" />
+          <span>Record New Contribution</span>
         </Link>
       </div>
 
-      {/* Class KPI Cards */}
+      {/* Stitch Class KPI Ribbon (5 Cards) */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         {/* Current Rank */}
-        <div className="bg-white p-5 rounded-2xl border border-[#e6e2d8] shadow-xs col-span-2 sm:col-span-1">
-          <div className="flex items-center justify-between text-[#526359] text-xs font-semibold uppercase mb-2">
+        <div className="bg-white p-5 rounded-2xl border border-[#e6e2d8] ambient-shadow col-span-2 sm:col-span-1 flex flex-col justify-between">
+          <div className="flex items-center justify-between text-[#526359] text-xs font-bold uppercase mb-2">
             <span>Rank</span>
             <Trophy className="w-4 h-4 text-amber-500" />
           </div>
-          <div className="flex items-baseline gap-1">
-            <span className="text-3xl font-black text-amber-600">
-              #{classDoc.currentRank}
-            </span>
-            <span className="text-xs text-[#526359]">/ 17 classes</span>
+          <div>
+            <div className="flex items-baseline gap-1">
+              <span className="text-3xl font-black font-headline text-amber-600">
+                #{classDoc.currentRank}
+              </span>
+              <span className="text-xs text-[#526359]">/ 17</span>
+            </div>
+            <span className="text-[11px] text-[#526359] block mt-1">Department Standings</span>
           </div>
         </div>
 
         {/* Total Impact */}
-        <div className="bg-white p-5 rounded-2xl border border-[#e6e2d8] shadow-xs">
-          <div className="flex items-center justify-between text-[#526359] text-xs font-semibold uppercase mb-2">
-            <span>Impact Score</span>
+        <div className="bg-white p-5 rounded-2xl border border-[#e6e2d8] ambient-shadow flex flex-col justify-between">
+          <div className="flex items-center justify-between text-[#526359] text-xs font-bold uppercase mb-2">
+            <span>Class Impact</span>
             <TrendingUp className="w-4 h-4 text-[#155e42]" />
           </div>
-          <span className="text-2xl sm:text-3xl font-black text-[#155e42]">
-            {formatKg(classDoc.totalEquivalentKg)}
-          </span>
+          <div>
+            <span className="text-2xl sm:text-3xl font-black font-headline text-[#155e42] block">
+              {formatKg(classDoc.totalEquivalentKg)}
+            </span>
+            <span className="text-[11px] text-[#526359] block mt-1">Equivalent Total</span>
+          </div>
         </div>
 
         {/* Unique Contributors */}
-        <div className="bg-white p-5 rounded-2xl border border-[#e6e2d8] shadow-xs">
-          <div className="flex items-center justify-between text-[#526359] text-xs font-semibold uppercase mb-2">
+        <div className="bg-white p-5 rounded-2xl border border-[#e6e2d8] ambient-shadow flex flex-col justify-between">
+          <div className="flex items-center justify-between text-[#526359] text-xs font-bold uppercase mb-2">
             <span>Contributors</span>
             <Users className="w-4 h-4 text-blue-600" />
           </div>
-          <span className="text-2xl sm:text-3xl font-black text-[#0a241b]">
-            {classDoc.contributorCount}
-          </span>
-          <span className="text-[11px] text-[#526359] block mt-1">Unique Students</span>
+          <div>
+            <span className="text-2xl sm:text-3xl font-black font-headline text-[#0a241b] block">
+              {classDoc.contributorCount}
+            </span>
+            <span className="text-[11px] text-[#526359] block mt-1">Active Students</span>
+          </div>
         </div>
 
         {/* Physical Grain */}
-        <div className="bg-white p-5 rounded-2xl border border-[#e6e2d8] shadow-xs">
-          <div className="flex items-center justify-between text-[#526359] text-xs font-semibold uppercase mb-2">
+        <div className="bg-white p-5 rounded-2xl border border-[#e6e2d8] ambient-shadow flex flex-col justify-between">
+          <div className="flex items-center justify-between text-[#526359] text-xs font-bold uppercase mb-2">
             <span>Grain Collected</span>
             <Wheat className="w-4 h-4 text-amber-700" />
           </div>
-          <span className="text-2xl sm:text-3xl font-black text-amber-900">
-            {formatKg(classDoc.totalGrainKg)}
-          </span>
+          <div>
+            <span className="text-2xl sm:text-3xl font-black font-headline text-amber-900 block">
+              {formatKg(classDoc.totalGrainKg)}
+            </span>
+            <span className="text-[11px] text-[#526359] block mt-1">Food grain weight</span>
+          </div>
         </div>
 
         {/* Monetary Support */}
-        <div className="bg-white p-5 rounded-2xl border border-[#e6e2d8] shadow-xs">
-          <div className="flex items-center justify-between text-[#526359] text-xs font-semibold uppercase mb-2">
-            <span>Money Raised</span>
+        <div className="bg-white p-5 rounded-2xl border border-[#e6e2d8] ambient-shadow flex flex-col justify-between">
+          <div className="flex items-center justify-between text-[#526359] text-xs font-bold uppercase mb-2">
+            <span>Monetary Raised</span>
             <Coins className="w-4 h-4 text-emerald-600" />
           </div>
-          <span className="text-2xl sm:text-3xl font-black text-emerald-700">
-            {formatCurrency(classDoc.totalMoney)}
-          </span>
+          <div>
+            <span className="text-2xl sm:text-3xl font-black font-headline text-emerald-700 block">
+              {formatCurrency(classDoc.totalMoney)}
+            </span>
+            <span className="text-[11px] text-[#526359] block mt-1">Financial Pool</span>
+          </div>
         </div>
       </div>
 
       {/* Competitive Standings Analysis Card */}
-      <div className="bg-white p-6 rounded-3xl border border-[#e6e2d8] shadow-xs">
-        <h3 className="text-base font-bold text-[#0a241b] mb-4 flex items-center gap-2">
+      <div className="bg-white p-6 sm:p-8 rounded-3xl border border-[#e6e2d8] ambient-shadow">
+        <h3 className="text-base font-black font-headline text-[#0a241b] mb-4 flex items-center gap-2">
           <Award className="w-5 h-5 text-amber-500" />
-          Competition Standing Analysis
+          <span>Competition Standing Analysis</span>
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="bg-[#fbfaf7] p-4 rounded-2xl border border-[#e6e2d8]">
-            <span className="text-xs font-semibold text-[#526359] uppercase block mb-1">
+          <div className="bg-[#fcf9f3] p-4 rounded-2xl border border-[#e6e2d8]">
+            <span className="text-[11px] font-bold uppercase text-[#526359] block mb-1">
               Position Ahead
             </span>
             {classAbove ? (
@@ -164,8 +183,8 @@ export default async function CrDashboardPage() {
             )}
           </div>
 
-          <div className="bg-[#fbfaf7] p-4 rounded-2xl border border-[#e6e2d8]">
-            <span className="text-xs font-semibold text-[#526359] uppercase block mb-1">
+          <div className="bg-[#fcf9f3] p-4 rounded-2xl border border-[#e6e2d8]">
+            <span className="text-[11px] font-bold uppercase text-[#526359] block mb-1">
               Position Behind
             </span>
             {classBelow ? (
@@ -187,15 +206,15 @@ export default async function CrDashboardPage() {
       </div>
 
       {/* Recent Class Contributions List */}
-      <div className="bg-white rounded-3xl p-6 border border-[#e6e2d8] shadow-xs">
+      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#e6e2d8] ambient-shadow">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-base font-bold text-[#0a241b] flex items-center gap-2">
+          <h3 className="text-base font-black font-headline text-[#0a241b] flex items-center gap-2">
             <History className="w-5 h-5 text-[#155e42]" />
-            Recent Class Contributions
+            <span>Recent Class Contributions</span>
           </h3>
           <Link
             href="/cr/contributions"
-            className="text-xs font-semibold text-[#155e42] hover:text-[#0a241b] flex items-center gap-1"
+            className="text-xs font-bold text-[#155e42] hover:text-[#0a241b] flex items-center gap-1"
           >
             View All ({contributions.length}) <ArrowUpRight className="w-3.5 h-3.5" />
           </Link>
@@ -212,7 +231,7 @@ export default async function CrDashboardPage() {
                   </span>
                 </div>
                 <div className="text-right">
-                  <span className="font-extrabold text-[#155e42] block">
+                  <span className="font-black font-headline text-[#155e42] block">
                     +{formatKg(c.equivalentKg)}
                   </span>
                   <span className="text-[11px] text-[#526359]">

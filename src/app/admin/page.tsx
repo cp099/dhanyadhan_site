@@ -21,6 +21,8 @@ import {
   TrendingUp,
   ArrowRight,
   Database,
+  Sparkles,
+  ShieldCheck,
 } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
@@ -39,10 +41,10 @@ export default async function AdminDashboardPage() {
     <div className="space-y-8">
       {/* Configuration Status Banner if unconfigured */}
       {!config.isConfigured && (
-        <div className="bg-amber-50 border border-amber-300 rounded-3xl p-5 flex items-start gap-3">
+        <div className="bg-amber-50 border border-amber-300 rounded-3xl p-5 flex items-start gap-3 shadow-xs">
           <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
           <div>
-            <h3 className="text-sm font-bold text-amber-950">
+            <h3 className="text-sm font-bold text-amber-950 font-headline">
               Campaign Configuration Incomplete
             </h3>
             <p className="text-xs text-amber-800 mt-0.5">
@@ -53,71 +55,95 @@ export default async function AdminDashboardPage() {
       )}
 
       {/* Clean Page Title */}
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-black text-[#0a241b] tracking-tight">
-          Department Command Center
-        </h1>
-        <p className="text-xs text-[#526359] mt-0.5">
-          Central dashboard for all 17 Department of Commerce classes and campaign impact metrics.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-[#155e42]/10 text-[#155e42] text-[11px] font-bold uppercase tracking-wider mb-2">
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>Master Governance Console</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-black font-headline text-[#0a241b] tracking-tight">
+            Department Command Center
+          </h1>
+          <p className="text-xs sm:text-sm text-[#526359] mt-0.5">
+            Central dashboard for all 17 Department of Commerce classes and institutional impact telemetry.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Link
+            href="/admin/reports"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-white hover:bg-gray-50 border border-[#e6e2d8] text-[#0a241b] transition-all shadow-2xs"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-[#155e42]" />
+            <span>NAAC & NIRF Reports</span>
+          </Link>
+        </div>
       </div>
 
-      {/* Department KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {/* Total Impact */}
-        <div className="bg-white p-5 rounded-2xl border border-[#e6e2d8] shadow-xs">
-          <div className="flex items-center justify-between text-[#526359] text-xs font-semibold uppercase mb-2">
-            <span>Total Department Impact</span>
+      {/* Stitch Executive Impact Grid (4 Cards) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Total Equivalent Impact */}
+        <div className="bg-white p-5 rounded-2xl border border-[#e6e2d8] ambient-shadow flex flex-col justify-between">
+          <div className="flex items-center justify-between text-[#526359] text-xs font-bold uppercase mb-2">
+            <span>Total Equivalent Impact</span>
             <TrendingUp className="w-4 h-4 text-[#155e42]" />
           </div>
-          <span className="text-2xl sm:text-3xl font-black text-[#155e42]">
-            {formatKg(summary.totalImpactKg)}
-          </span>
-          <span className="text-xs text-[#526359] block mt-1">
-            Target: {summary.targetKg ? formatKg(summary.targetKg) : 'Not configured'}
-          </span>
-        </div>
-
-        {/* Progress Percentage */}
-        <div className="bg-white p-5 rounded-2xl border border-[#e6e2d8] shadow-xs">
-          <div className="flex items-center justify-between text-[#526359] text-xs font-semibold uppercase mb-2">
-            <span>Overall Progress</span>
-            <Trophy className="w-4 h-4 text-amber-500" />
+          <div>
+            <span className="text-3xl font-black font-headline text-[#155e42] block">
+              {formatKg(summary.totalImpactKg)}
+            </span>
+            <span className="text-xs text-[#526359] block mt-1">
+              Target: {summary.targetKg ? formatKg(summary.targetKg) : 'Not set'} ({summary.progressPercentage}%)
+            </span>
           </div>
-          <span className="text-2xl sm:text-3xl font-black text-[#16a34a]">
-            {summary.progressPercentage}%
-          </span>
-          <span className="text-xs text-[#526359] block mt-1">
-            Single combined goal
-          </span>
         </div>
 
-        {/* Unique Contributors */}
-        <div className="bg-white p-5 rounded-2xl border border-[#e6e2d8] shadow-xs">
-          <div className="flex items-center justify-between text-[#526359] text-xs font-semibold uppercase mb-2">
-            <span>Unique Contributors</span>
+        {/* Physical Food Grains */}
+        <div className="bg-white p-5 rounded-2xl border border-[#e6e2d8] ambient-shadow flex flex-col justify-between">
+          <div className="flex items-center justify-between text-[#526359] text-xs font-bold uppercase mb-2">
+            <span>Food Grains Collected</span>
+            <Wheat className="w-4 h-4 text-[#155e42]" />
+          </div>
+          <div>
+            <span className="text-3xl font-black font-headline text-[#0a241b] block">
+              {formatKg(summary.totalGrainKg || 0)}
+            </span>
+            <span className="text-xs text-[#526359] block mt-1">
+              Direct physical nourishment
+            </span>
+          </div>
+        </div>
+
+        {/* Monetary Resource Pool */}
+        <div className="bg-white p-5 rounded-2xl border border-[#e6e2d8] ambient-shadow flex flex-col justify-between">
+          <div className="flex items-center justify-between text-[#526359] text-xs font-bold uppercase mb-2">
+            <span>Monetary Resource Pool</span>
+            <Coins className="w-4 h-4 text-amber-600" />
+          </div>
+          <div>
+            <span className="text-3xl font-black font-headline text-[#0a241b] block">
+              {formatCurrency(summary.totalMoney || 0)}
+            </span>
+            <span className="text-xs text-[#526359] block mt-1">
+              Rate: ₹{config.moneyToKgRate || 25} / KG Eq
+            </span>
+          </div>
+        </div>
+
+        {/* Total Student Reach */}
+        <div className="bg-white p-5 rounded-2xl border border-[#e6e2d8] ambient-shadow flex flex-col justify-between">
+          <div className="flex items-center justify-between text-[#526359] text-xs font-bold uppercase mb-2">
+            <span>Student Changemakers</span>
             <Users className="w-4 h-4 text-blue-600" />
           </div>
-          <span className="text-2xl sm:text-3xl font-black text-[#0a241b]">
-            {summary.contributorCount}
-          </span>
-          <span className="text-xs text-[#526359] block mt-1">
-            Across 17 classes
-          </span>
-        </div>
-
-        {/* Total Contributions */}
-        <div className="bg-white p-5 rounded-2xl border border-[#e6e2d8] shadow-xs">
-          <div className="flex items-center justify-between text-[#526359] text-xs font-semibold uppercase mb-2">
-            <span>Total Transactions</span>
-            <Database className="w-4 h-4 text-purple-600" />
+          <div>
+            <span className="text-3xl font-black font-headline text-[#0a241b] block">
+              {summary.contributorCount}
+            </span>
+            <span className="text-xs text-[#526359] block mt-1">
+              Across all 17 Commerce classes
+            </span>
           </div>
-          <span className="text-2xl sm:text-3xl font-black text-[#0a241b]">
-            {summary.contributionCount}
-          </span>
-          <span className="text-xs text-[#526359] block mt-1">
-            Contributions recorded
-          </span>
         </div>
       </div>
 
@@ -129,20 +155,20 @@ export default async function AdminDashboardPage() {
       />
 
       {/* 17 Classes Master Leaderboard Grid */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#e6e2d8] shadow-xs">
+      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#e6e2d8] ambient-shadow">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h3 className="text-lg font-bold text-[#0a241b] flex items-center gap-2">
+            <h3 className="text-lg font-black font-headline text-[#0a241b] flex items-center gap-2">
               <GraduationCap className="w-5 h-5 text-[#155e42]" />
-              All 17 Commerce Classes Status
+              <span>All 17 Commerce Classes Status</span>
             </h3>
-            <p className="text-xs text-[#526359]">
-              Click any class to view private student rosters, full histories, and class-level management.
+            <p className="text-xs text-[#526359] mt-0.5">
+              Click any class to inspect private student rosters, full histories, and class-level management.
             </p>
           </div>
           <Link
             href="/admin/classes"
-            className="text-xs font-semibold text-[#155e42] hover:underline"
+            className="text-xs font-bold text-[#155e42] hover:underline"
           >
             Manage Classes →
           </Link>
@@ -150,7 +176,6 @@ export default async function AdminDashboardPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {sortedClasses.map((c) => {
-            const isTop3 = c.currentRank <= 3;
             return (
               <Link
                 key={c.id}
@@ -162,12 +187,12 @@ export default async function AdminDashboardPage() {
                     ? 'bg-slate-50 border-slate-300'
                     : c.currentRank === 3
                     ? 'bg-amber-50/20 border-amber-200'
-                    : 'bg-[#fbfaf7] border-[#e6e2d8] hover:border-gray-300'
+                    : 'bg-[#fcf9f3] border-[#e6e2d8] hover:border-gray-300'
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
                   <span
-                    className={`w-7 h-7 rounded-lg text-xs font-black flex items-center justify-center ${
+                    className={`w-7 h-7 rounded-lg text-xs font-black font-headline flex items-center justify-center ${
                       c.currentRank === 1
                         ? 'bg-amber-400 text-amber-950 shadow-xs'
                         : c.currentRank === 2
@@ -190,7 +215,7 @@ export default async function AdminDashboardPage() {
                 <div className="mt-4 pt-3 border-t border-[#e6e2d8] flex items-center justify-between text-xs">
                   <div>
                     <span className="text-[#526359] block text-[10px] uppercase font-semibold">Impact</span>
-                    <span className="font-extrabold text-[#155e42]">{formatKg(c.totalEquivalentKg)}</span>
+                    <span className="font-black font-headline text-[#155e42]">{formatKg(c.totalEquivalentKg)}</span>
                   </div>
                   <div className="text-right">
                     <span className="text-[#526359] block text-[10px] uppercase font-semibold">Contributors</span>
@@ -204,14 +229,14 @@ export default async function AdminDashboardPage() {
       </div>
 
       {/* Recent Department Contributions Feed */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#e6e2d8] shadow-xs">
+      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#e6e2d8] ambient-shadow">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-base font-bold text-[#0a241b]">
+          <h3 className="text-base font-black font-headline text-[#0a241b]">
             Recent Department-Wide Contributions
           </h3>
           <Link
             href="/admin/contributions"
-            className="text-xs font-semibold text-[#155e42] hover:underline"
+            className="text-xs font-bold text-[#155e42] hover:underline"
           >
             Full Ledger ({contributions.length}) →
           </Link>
@@ -233,7 +258,7 @@ export default async function AdminDashboardPage() {
                   </span>
                 </div>
                 <div className="text-right">
-                  <span className="font-extrabold text-[#155e42]">
+                  <span className="font-black font-headline text-[#155e42]">
                     +{formatKg(c.equivalentKg)}
                   </span>
                   <span className="text-[11px] text-[#526359] block">

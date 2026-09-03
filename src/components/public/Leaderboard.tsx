@@ -75,16 +75,16 @@ export function Leaderboard({ items }: LeaderboardProps) {
   return (
     <section id="leaderboard" className="scroll-mt-20 py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* Header */}
-      <div className="text-center max-w-3xl mx-auto mb-12">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#155e42]/10 text-[#155e42] text-xs font-bold uppercase tracking-wider mb-3">
-          <Trophy className="w-4 h-4 text-amber-500" />
-          Official Department Competition
+      <div className="text-center max-w-2xl mx-auto mb-12">
+        <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/10 text-amber-800 text-xs font-bold uppercase tracking-wider mb-3">
+          <Trophy className="w-3.5 h-3.5 text-amber-600" />
+          <span>Official Department Competition</span>
         </div>
-        <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0a241b]">
+        <h2 className="text-3xl sm:text-4xl font-extrabold font-headline text-[#0a241b] tracking-tight">
           Main 17-Class Leaderboard
         </h2>
-        <p className="mt-3 text-[#526359] text-base">
-          All 17 classes compete in one unified leaderboard based on official Equivalent Impact KG. Click any class to view the continuous contributing students leaderboard.
+        <p className="mt-2.5 text-[#526359] text-sm sm:text-base leading-relaxed">
+          All 17 classes compete in one unified leaderboard based on official Equivalent Impact KG. Click any class to inspect the student contributors list.
         </p>
       </div>
 
@@ -94,21 +94,21 @@ export function Leaderboard({ items }: LeaderboardProps) {
         {top2 && (
           <Link
             href={`/class/${top2.classId}`}
-            className="order-2 md:order-1 block rounded-3xl p-6 border-2 transition-card podium-silver relative overflow-hidden group shadow-md"
+            className="order-2 md:order-1 block rounded-3xl p-6 border-2 border-slate-300 transition-card bg-gradient-to-b from-slate-50 to-slate-100/60 ambient-shadow relative overflow-hidden group"
           >
             <div className="flex items-center justify-between mb-4">
-              <span className="w-10 h-10 rounded-2xl bg-slate-300 text-slate-800 font-black text-lg flex items-center justify-center shadow-inner">
+              <span className="w-10 h-10 rounded-2xl bg-slate-300 text-slate-800 font-black font-headline text-lg flex items-center justify-center shadow-xs">
                 2
               </span>
               <Medal className="w-8 h-8 text-slate-400 group-hover:scale-110 transition-transform" />
             </div>
-            <h3 className="text-2xl font-bold text-slate-900 mb-1">{top2.className}</h3>
+            <h3 className="text-2xl font-bold font-headline text-slate-900 mb-1">{top2.className}</h3>
             <span className="text-xs text-slate-600 font-medium">{top2.program}</span>
 
             <div className="mt-6 pt-4 border-t border-slate-300/60 flex justify-between items-baseline">
               <div>
                 <span className="text-xs text-slate-600 block">Class Impact</span>
-                <span className="text-2xl font-black text-slate-900">{formatKg(top2.impactKg)}</span>
+                <span className="text-2xl font-black font-headline text-slate-900">{formatKg(top2.impactKg)}</span>
               </div>
               <div className="text-right">
                 <span className="text-xs text-slate-600 block">Contributors</span>
@@ -125,25 +125,25 @@ export function Leaderboard({ items }: LeaderboardProps) {
         {top1 && (
           <Link
             href={`/class/${top1.classId}`}
-            className="order-1 md:order-2 block rounded-3xl p-8 border-2 transition-card podium-gold relative overflow-hidden group shadow-xl md:-translate-y-4"
+            className="order-1 md:order-2 block rounded-3xl p-8 border-2 border-amber-400 transition-card bg-gradient-to-b from-amber-50 to-amber-100/50 ambient-shadow relative overflow-hidden group md:-translate-y-4"
           >
-            <div className="absolute -top-6 -right-6 w-24 h-24 bg-amber-400/20 rounded-full blur-xl pointer-events-none"></div>
+            <div className="absolute -top-6 -right-6 w-28 h-28 bg-amber-400/20 rounded-full blur-xl pointer-events-none" />
             <div className="flex items-center justify-between mb-4">
-              <span className="w-12 h-12 rounded-2xl bg-amber-400 text-amber-950 font-black text-2xl flex items-center justify-center shadow-md">
+              <span className="w-12 h-12 rounded-2xl bg-amber-400 text-amber-950 font-black font-headline text-2xl flex items-center justify-center shadow-md">
                 1
               </span>
               <Trophy className="w-10 h-10 text-amber-500 group-hover:scale-110 transition-transform animate-pulse" />
             </div>
-            <div className="inline-block px-2.5 py-0.5 rounded-full bg-amber-400/30 text-amber-900 text-xs font-bold uppercase tracking-wider mb-1">
+            <div className="inline-block px-3 py-1 rounded-full bg-amber-400/30 text-amber-900 text-xs font-bold uppercase tracking-wider mb-2">
               🥇 Current Leader
             </div>
-            <h3 className="text-3xl font-extrabold text-amber-950 mb-1">{top1.className}</h3>
+            <h3 className="text-3xl font-black font-headline text-amber-950 mb-1">{top1.className}</h3>
             <span className="text-xs text-amber-900/80 font-medium">{top1.program}</span>
 
             <div className="mt-8 pt-4 border-t border-amber-400/60 flex justify-between items-baseline">
               <div>
                 <span className="text-xs text-amber-800 block">Class Impact</span>
-                <span className="text-3xl font-black text-amber-950">{formatKg(top1.impactKg)}</span>
+                <span className="text-3xl font-black font-headline text-amber-950">{formatKg(top1.impactKg)}</span>
               </div>
               <div className="text-right">
                 <span className="text-xs text-amber-800 block">Contributors</span>
@@ -160,21 +160,21 @@ export function Leaderboard({ items }: LeaderboardProps) {
         {top3 && (
           <Link
             href={`/class/${top3.classId}`}
-            className="order-3 block rounded-3xl p-6 border-2 transition-card podium-bronze relative overflow-hidden group shadow-md"
+            className="order-3 block rounded-3xl p-6 border-2 border-amber-700/30 transition-card bg-gradient-to-b from-orange-50 to-orange-100/40 ambient-shadow relative overflow-hidden group"
           >
             <div className="flex items-center justify-between mb-4">
-              <span className="w-10 h-10 rounded-2xl bg-amber-700/20 text-amber-900 font-black text-lg flex items-center justify-center shadow-inner">
+              <span className="w-10 h-10 rounded-2xl bg-amber-700/20 text-amber-900 font-black font-headline text-lg flex items-center justify-center shadow-xs">
                 3
               </span>
               <Award className="w-8 h-8 text-amber-700 group-hover:scale-110 transition-transform" />
             </div>
-            <h3 className="text-2xl font-bold text-amber-950 mb-1">{top3.className}</h3>
+            <h3 className="text-2xl font-bold font-headline text-amber-950 mb-1">{top3.className}</h3>
             <span className="text-xs text-amber-900/80 font-medium">{top3.program}</span>
 
             <div className="mt-6 pt-4 border-t border-amber-700/30 flex justify-between items-baseline">
               <div>
                 <span className="text-xs text-amber-800 block">Class Impact</span>
-                <span className="text-2xl font-black text-amber-950">{formatKg(top3.impactKg)}</span>
+                <span className="text-2xl font-black font-headline text-amber-950">{formatKg(top3.impactKg)}</span>
               </div>
               <div className="text-right">
                 <span className="text-xs text-amber-800 block">Contributors</span>
@@ -189,15 +189,15 @@ export function Leaderboard({ items }: LeaderboardProps) {
       </div>
 
       {/* Search & Continuous Standings Table */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-[#e6e2d8]">
+      <div className="bg-white rounded-3xl p-6 sm:p-8 ambient-shadow border border-[#e6e2d8]">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
-            <h3 className="text-lg font-bold text-[#0a241b] flex items-center gap-2">
+            <h3 className="text-xl font-black font-headline text-[#0a241b] flex items-center gap-2">
               <span>All 17 Classes Standings</span>
               <span className="text-xs font-normal text-[#526359]">({sorted.length} total classes)</span>
             </h3>
             <p className="text-xs text-[#526359] mt-0.5">
-              Click any class row to expand its continuous student leaderboard.
+              Click any class row to expand its student leaderboard.
             </p>
           </div>
 
