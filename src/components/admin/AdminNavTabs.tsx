@@ -7,7 +7,6 @@ import {
   LayoutDashboard,
   GraduationCap,
   History,
-  Settings,
   UserPlus,
   FileSpreadsheet,
 } from 'lucide-react';
@@ -23,7 +22,6 @@ const TABS: TabItem[] = [
   { name: 'Command Center', href: '/admin', icon: LayoutDashboard, exact: true },
   { name: '17 Classes', href: '/admin/classes', icon: GraduationCap },
   { name: 'All Contributions', href: '/admin/contributions', icon: History },
-  { name: 'Campaign & Rules', href: '/admin/campaign', icon: Settings },
   { name: 'CR Accounts', href: '/admin/cr-management', icon: UserPlus },
   { name: 'Reports & CSV', href: '/admin/reports', icon: FileSpreadsheet },
 ];
@@ -33,7 +31,7 @@ export function AdminNavTabs() {
 
   return (
     <div className="mt-6 border-b border-[#155e42]/60">
-      <nav className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 w-full -mb-px gap-1">
+      <nav className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 w-full -mb-px gap-1">
         {TABS.map((tab) => {
           const Icon = tab.icon;
           const isActive = tab.exact

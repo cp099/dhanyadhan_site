@@ -6,6 +6,7 @@ import {
   getAllContributions,
 } from '@/lib/firebase/admin';
 import { formatKg, formatCurrency, formatDate } from '@/lib/utils';
+import { CampaignConfigCard } from '@/components/admin/CampaignConfigCard';
 import {
   Trophy,
   Users,
@@ -36,31 +37,22 @@ export default async function AdminDashboardPage() {
 
   return (
     <div className="space-y-8">
-      {/* Configuration Status Banner */}
+      {/* Configuration Status Banner if unconfigured */}
       {!config.isConfigured && (
-        <div className="bg-amber-50 border border-amber-300 rounded-3xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-start gap-3">
-            <AlertCircle className="w-6 h-6 text-amber-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <h3 className="text-base font-bold text-amber-950">
-                Campaign Configuration Incomplete
-              </h3>
-              <p className="text-xs text-amber-800 mt-1">
-                Official campaign parameters (Target KG, Money-to-KG conversion rate, and accepted grains) have not been finalized. Please configure them before public launch.
-              </p>
-            </div>
+        <div className="bg-amber-50 border border-amber-300 rounded-3xl p-5 flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <h3 className="text-sm font-bold text-amber-950">
+              Campaign Configuration Incomplete
+            </h3>
+            <p className="text-xs text-amber-800 mt-0.5">
+              Please enter the Department Target and Money-to-KG conversion rate in the configuration card below to activate all live trackers.
+            </p>
           </div>
-          <Link
-            href="/admin/campaign"
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-600 text-white font-bold text-xs hover:bg-amber-700 transition-colors flex-shrink-0"
-          >
-            <Settings className="w-4 h-4" />
-            Configure Campaign
-          </Link>
         </div>
       )}
 
-      {/* Header & Quick Action Bar */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-[#e6e2d8] shadow-xs">
         <div>
           <h2 className="text-2xl font-black text-[#0a241b]">
@@ -74,17 +66,10 @@ export default async function AdminDashboardPage() {
         <div className="flex flex-wrap items-center gap-2">
           <Link
             href="/admin/classes"
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-[#e6e2d8] text-xs font-bold text-[#155e42] hover:bg-[#fbfaf7] transition-colors"
-          >
-            <GraduationCap className="w-4 h-4" />
-            17 Classes Directory
-          </Link>
-          <Link
-            href="/admin/campaign"
             className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#155e42] text-white text-xs font-bold hover:bg-[#0a241b] transition-colors shadow-xs"
           >
-            <Settings className="w-4 h-4 text-[#86efac]" />
-            Campaign Settings
+            <GraduationCap className="w-4 h-4 text-[#86efac]" />
+            17 Classes Directory
           </Link>
         </div>
       </div>
@@ -147,6 +132,13 @@ export default async function AdminDashboardPage() {
           </span>
         </div>
       </div>
+
+      {/* Campaign Target & Conversion Rules Inline Configuration Card */}
+      <CampaignConfigCard
+        initialTargetKg={config.targetKg}
+        initialMoneyToKgRate={config.moneyToKgRate}
+        isConfigured={config.isConfigured}
+      />
 
       {/* 17 Classes Master Leaderboard Grid */}
       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#e6e2d8] shadow-xs">
