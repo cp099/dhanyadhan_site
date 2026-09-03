@@ -73,11 +73,11 @@ export default async function AdminDashboardPage() {
 
         <div className="flex flex-wrap items-center gap-2">
           <Link
-            href="/admin/students"
+            href="/admin/classes"
             className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-[#e6e2d8] text-xs font-bold text-[#155e42] hover:bg-[#fbfaf7] transition-colors"
           >
-            <Users className="w-4 h-4" />
-            Manage Students
+            <GraduationCap className="w-4 h-4" />
+            17 Classes Directory
           </Link>
           <Link
             href="/admin/campaign"

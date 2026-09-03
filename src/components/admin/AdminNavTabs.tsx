@@ -6,12 +6,10 @@ import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard,
   GraduationCap,
-  Users,
   History,
   Settings,
   UserPlus,
   FileSpreadsheet,
-  ScrollText,
 } from 'lucide-react';
 
 interface TabItem {
@@ -24,12 +22,10 @@ interface TabItem {
 const TABS: TabItem[] = [
   { name: 'Command Center', href: '/admin', icon: LayoutDashboard, exact: true },
   { name: '17 Classes', href: '/admin/classes', icon: GraduationCap },
-  { name: 'Student Rosters', href: '/admin/students', icon: Users },
   { name: 'All Contributions', href: '/admin/contributions', icon: History },
   { name: 'Campaign & Rules', href: '/admin/campaign', icon: Settings },
   { name: 'CR Accounts', href: '/admin/cr-management', icon: UserPlus },
   { name: 'Reports & CSV', href: '/admin/reports', icon: FileSpreadsheet },
-  { name: 'Audit Logs', href: '/admin/audit-logs', icon: ScrollText },
 ];
 
 export function AdminNavTabs() {
