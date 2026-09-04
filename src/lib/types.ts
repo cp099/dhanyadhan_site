@@ -73,6 +73,7 @@ export interface ContributionDoc {
   
   recordedBy: string; // User ID / Email
   recordedByName: string;
+  paymentProofUrl?: string | null; // Compressed Base64 Data URI or image URL
   notes?: string;
   createdAt: string;
   updatedAt: string;

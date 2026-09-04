@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { StudentDoc, CampaignConfig, ContributionType } from '@/lib/types';
 import { formatKg, formatCurrency } from '@/lib/utils';
+import { compressImageFile, formatBytes } from '@/lib/imageCompression';
 import {
   PlusCircle,
   Coins,
@@ -16,6 +17,11 @@ import {
   History,
   Users,
   UserCheck,
+  Upload,
+  Image as ImageIcon,
+  ShieldCheck,
+  RefreshCw,
+  X,
 } from 'lucide-react';
 
 export default function NewContributionPage() {
@@ -38,6 +44,17 @@ export default function NewContributionPage() {
   const [moneyAmount, setMoneyAmount] = useState<string>('');
   const [grainQuantityKg, setGrainQuantityKg] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
+
+  // Payment Proof Screenshot States
+  const [paymentProofUrl, setPaymentProofUrl] = useState<string | null>(null);
+  const [compressingImage, setCompressingImage] = useState(false);
+  const [compressionStats, setCompressionStats] = useState<{
+    originalSize: number;
+    compressedSize: number;
+    reduction: number;
+  } | null>(null);
+  const [dragActive, setDragActive] = useState(false);
+  const [imageError, setImageError] = useState<string | null>(null);
 
   // Fetch student roster and campaign config
   useEffect(() => {
@@ -82,6 +99,42 @@ export default function NewContributionPage() {
       (s.rollNo && s.rollNo.toLowerCase().includes(studentSearch.toLowerCase()))
   );
 
+  // File Upload Handlers
+  async function processSelectedFile(file: File) {
+    setImageError(null);
+    setCompressingImage(true);
+    try {
+      const result = await compressImageFile(file);
+      setPaymentProofUrl(result.dataUrl);
+      setCompressionStats({
+        originalSize: result.originalSize,
+        compressedSize: result.compressedSize,
+        reduction: result.reductionPercentage,
+      });
+    } catch (err: any) {
+      setImageError(err.message || 'Failed to process screenshot.');
+      setPaymentProofUrl(null);
+      setCompressionStats(null);
+    } finally {
+      setCompressingImage(false);
+    }
+  }
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    if (e.target.files && e.target.files[0]) {
+      processSelectedFile(e.target.files[0]);
+    }
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      processSelectedFile(e.dataTransfer.files[0]);
+    }
+  }
+
   // Handle direct submission
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -93,6 +146,7 @@ export default function NewContributionPage() {
 
     const numMoney = moneyAmount ? parseFloat(moneyAmount) : 0;
     const numGrain = grainQuantityKg ? parseFloat(grainQuantityKg) : 0;
+    const isMonetary = contributionType === 'money' || contributionType === 'both';
 
     if (contributionType === 'money' && numMoney <= 0) {
       setError('Please enter a valid monetary amount (₹).');
@@ -107,6 +161,12 @@ export default function NewContributionPage() {
       return;
     }
 
+    // Mandatory payment proof screenshot validation
+    if (isMonetary && !paymentProofUrl) {
+      setError('Payment verification screenshot (PNG, JPEG, HEIC, SVG) is mandatory for monetary contributions.');
+      return;
+    }
+
     setError(null);
     setSubmitting(true);
 
@@ -118,6 +178,7 @@ export default function NewContributionPage() {
         moneyAmount: numMoney,
         grainType: contributionType !== 'money' ? 'Food Grains' : null,
         grainQuantityKg: contributionType !== 'money' ? numGrain : 0,
+        paymentProofUrl: isMonetary ? paymentProofUrl : null,
         notes: notes.trim() || undefined,
       };
 
@@ -142,6 +203,9 @@ export default function NewContributionPage() {
       setMoneyAmount('');
       setGrainQuantityKg('');
       setNotes('');
+      setPaymentProofUrl(null);
+      setCompressionStats(null);
+      setImageError(null);
 
       // Refresh student roster
       const refreshedStudents = await fetch(`/api/students?classId=${userClassId}`);
@@ -482,6 +546,111 @@ export default function NewContributionPage() {
                 </div>
               )}
 
+              {/* Payment Verification Screenshot (Mandatory for Money) */}
+              {(contributionType === 'money' || contributionType === 'both') && (
+                <div className="space-y-1.5 pt-1">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-[11px] font-bold text-[#0a241b] uppercase tracking-wider flex items-center gap-1.5">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Payment Screenshot</span>
+                      <span className="text-red-500 font-black">*</span>
+                    </label>
+                    <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-200">
+                      Mandatory
+                    </span>
+                  </div>
+
+                  {imageError && (
+                    <div className="p-2.5 bg-red-50 border border-red-200 rounded-xl text-[11px] text-red-700 flex items-center gap-1.5">
+                      <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                      <span>{imageError}</span>
+                    </div>
+                  )}
+
+                  {paymentProofUrl ? (
+                    <div className="p-3 bg-emerald-50/70 border border-emerald-300 rounded-2xl space-y-2">
+                      <div className="flex items-center gap-3">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={paymentProofUrl}
+                          alt="Payment verification screenshot preview"
+                          className="w-12 h-12 object-cover rounded-xl border border-emerald-200 shadow-2xs flex-shrink-0 bg-white"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-950 truncate">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
+                            <span className="truncate">Proof Attached & Compressed</span>
+                          </div>
+                          {compressionStats && (
+                            <p className="text-[10px] text-emerald-800 mt-0.5">
+                              {formatBytes(compressionStats.originalSize)} → <strong>{formatBytes(compressionStats.compressedSize)}</strong> ({compressionStats.reduction}% saved)
+                            </p>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPaymentProofUrl(null);
+                            setCompressionStats(null);
+                          }}
+                          className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-white rounded-lg transition-colors"
+                          title="Remove screenshot"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setDragActive(true);
+                      }}
+                      onDragLeave={() => setDragActive(false)}
+                      onDrop={handleDrop}
+                      className={`relative border-2 border-dashed rounded-2xl p-4 text-center transition-all cursor-pointer ${
+                        dragActive
+                          ? 'border-[#155e42] bg-emerald-50/50'
+                          : 'border-[#e6e2d8] hover:border-[#155e42] bg-[#fbfaf7] hover:bg-white'
+                      }`}
+                    >
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml,image/heic,image/heif,.png,.jpg,.jpeg,.webp,.svg,.heic,.heif"
+                        onChange={handleFileChange}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        disabled={compressingImage}
+                      />
+                      <div className="flex flex-col items-center justify-center gap-1.5 pointer-events-none">
+                        {compressingImage ? (
+                          <div className="flex items-center gap-2 py-2 text-xs font-semibold text-[#155e42]">
+                            <RefreshCw className="w-4 h-4 animate-spin text-[#155e42]" />
+                            <span>Compressing payment screenshot...</span>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="w-8 h-8 rounded-full bg-emerald-100/80 flex items-center justify-center text-[#155e42]">
+                              <Upload className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <p className="text-xs font-bold text-[#0a241b]">
+                                Upload Payment Screenshot <span className="text-red-500">*</span>
+                              </p>
+                              <p className="text-[10px] text-[#526359] mt-0.5">
+                                Drag & drop or browse (PNG, JPEG, HEIC, SVG)
+                              </p>
+                            </div>
+                            <span className="text-[9px] font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                              Auto-compressed for database storage
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Notes (Optional) */}
               <div className="space-y-1">
                 <label className="block text-[11px] font-bold text-[#0a241b] uppercase tracking-wider">
@@ -496,10 +665,22 @@ export default function NewContributionPage() {
                 />
               </div>
 
+              {/* Validation Warning if Monetary without Screenshot */}
+              {(contributionType === 'money' || contributionType === 'both') && !paymentProofUrl && selectedStudentId && (
+                <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-2 text-[11px] text-amber-800">
+                  <AlertCircle className="w-3.5 h-3.5 flex-shrink-0 text-amber-600" />
+                  <span>Payment verification screenshot is required to record monetary support.</span>
+                </div>
+              )}
+
               {/* Direct Submit Button */}
               <button
                 type="submit"
-                disabled={submitting || !selectedStudentId}
+                disabled={
+                  submitting ||
+                  !selectedStudentId ||
+                  ((contributionType === 'money' || contributionType === 'both') && !paymentProofUrl)
+                }
                 className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-[#155e42] hover:bg-[#0a241b] text-white font-bold text-xs transition-all shadow-xs disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <PlusCircle className="w-4 h-4 text-[#86efac]" />

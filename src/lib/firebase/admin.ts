@@ -475,6 +475,7 @@ export async function recordContribution(params: {
   moneyAmount?: number;
   grainType?: string | null;
   grainQuantityKg?: number | null;
+  paymentProofUrl?: string | null;
   notes?: string;
   actor: { uid: string; email: string; name: string };
 }): Promise<ContributionDoc> {
@@ -519,6 +520,7 @@ export async function recordContribution(params: {
     grainConversionFactorUsed: calc.grainConversionFactorUsed,
     recordedBy: params.actor.email,
     recordedByName: params.actor.name,
+    paymentProofUrl: params.paymentProofUrl || null,
     notes: params.notes || '',
     createdAt: now,
     updatedAt: now,
@@ -564,6 +566,7 @@ export async function editContribution(
     moneyAmount?: number;
     grainType?: string | null;
     grainQuantityKg?: number | null;
+    paymentProofUrl?: string | null;
     notes?: string;
     actor: { uid: string; email: string; name: string };
   }
@@ -607,6 +610,7 @@ export async function editContribution(
   existing.conversionVersion = calc.conversionVersion;
   existing.moneyToKgRateUsed = calc.moneyToKgRateUsed;
   existing.grainConversionFactorUsed = calc.grainConversionFactorUsed;
+  if (params.paymentProofUrl !== undefined) existing.paymentProofUrl = params.paymentProofUrl;
   if (params.notes !== undefined) existing.notes = params.notes;
   existing.updatedAt = now;
 

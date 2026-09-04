@@ -203,6 +203,7 @@ async function runSecuritySuite() {
   // TEST 8: Client attempts to submit a tampered Equivalent KG value -> SERVER REJECTS/RECALCULATES
   // ----------------------------------------------------
   console.log('Test 8: Tampered Equivalent KG submission');
+  const mockProof = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
   const req8 = createMockRequest('http://localhost:3000/api/contributions', 'POST', {
     userUid: 'cr-2-bcom-afa',
     body: {
@@ -210,6 +211,7 @@ async function runSecuritySuite() {
       classId: '2-bcom-afa',
       type: 'money',
       moneyAmount: 500, // At rate ₹25 = 1 KG, official impact is 20 KG
+      paymentProofUrl: mockProof,
       equivalentKg: 9999, // Tampered client payload!
     },
   });
@@ -251,6 +253,71 @@ async function runSecuritySuite() {
     res10.status === 200,
     'SDG Admin access to all classes is ALLOWED (HTTP 200)',
     `Expected status 200, got ${res10.status}`
+  );
+
+  // ----------------------------------------------------
+  // TEST 11: Monetary contribution WITHOUT payment proof -> DENIED (HTTP 400)
+  // ----------------------------------------------------
+  console.log('Test 11: Monetary contribution without payment screenshot verification');
+  const req11 = createMockRequest('http://localhost:3000/api/contributions', 'POST', {
+    userUid: 'cr-2-bcom-afa',
+    body: {
+      studentId: 'std-seed-2-bcom-afa-1',
+      classId: '2-bcom-afa',
+      type: 'money',
+      moneyAmount: 250,
+      // paymentProofUrl omitted!
+    },
+  });
+  const res11 = await contributionsPostRoute(req11);
+  const data11 = await res11.json();
+  assert(
+    res11.status === 400 && data11.error?.includes('mandatory'),
+    'Monetary contribution without payment screenshot is REJECTED (HTTP 400)',
+    `Expected 400 with mandatory error, got ${res11.status}: ${data11.error}`
+  );
+
+  // ----------------------------------------------------
+  // TEST 12: Monetary contribution WITH payment proof -> ALLOWED & PERSISTED (HTTP 201)
+  // ----------------------------------------------------
+  console.log('Test 12: Monetary contribution with valid compressed screenshot');
+  const req12 = createMockRequest('http://localhost:3000/api/contributions', 'POST', {
+    userUid: 'cr-2-bcom-afa',
+    body: {
+      studentId: 'std-seed-2-bcom-afa-1',
+      classId: '2-bcom-afa',
+      type: 'money',
+      moneyAmount: 250,
+      paymentProofUrl: mockProof,
+    },
+  });
+  const res12 = await contributionsPostRoute(req12);
+  const data12 = await res12.json();
+  assert(
+    res12.status === 201 && data12.contribution?.paymentProofUrl === mockProof,
+    'Monetary contribution with compressed screenshot is ACCEPTED and PERSISTED',
+    `Expected 201 with saved paymentProofUrl, got ${res12.status}`
+  );
+
+  // ----------------------------------------------------
+  // TEST 13: Monetary contribution with invalid proof format -> DENIED (HTTP 400)
+  // ----------------------------------------------------
+  console.log('Test 13: Monetary contribution with non-image proof format');
+  const req13 = createMockRequest('http://localhost:3000/api/contributions', 'POST', {
+    userUid: 'cr-2-bcom-afa',
+    body: {
+      studentId: 'std-seed-2-bcom-afa-1',
+      classId: '2-bcom-afa',
+      type: 'money',
+      moneyAmount: 250,
+      paymentProofUrl: 'plain-text-not-an-image',
+    },
+  });
+  const res13 = await contributionsPostRoute(req13);
+  assert(
+    res13.status === 400,
+    'Invalid non-image payment proof format is REJECTED (HTTP 400)',
+    `Expected status 400, got ${res13.status}`
   );
 
   // ----------------------------------------------------

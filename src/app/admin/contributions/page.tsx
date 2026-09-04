@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { ContributionDoc } from '@/lib/types';
 import { OFFICIAL_CLASSES } from '@/lib/constants';
 import { formatKg, formatCurrency, formatDate } from '@/lib/utils';
+import PaymentProofModal from '@/components/ui/PaymentProofModal';
 import {
   History,
   Search,
@@ -12,6 +13,7 @@ import {
   Trash2,
   AlertCircle,
   CheckCircle2,
+  ShieldCheck,
 } from 'lucide-react';
 
 export default function AdminContributionsPage() {
@@ -23,6 +25,7 @@ export default function AdminContributionsPage() {
   const [classFilter, setClassFilter] = useState('all');
   const [deleteTarget, setDeleteTarget] = useState<ContributionDoc | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [proofModalTarget, setProofModalTarget] = useState<ContributionDoc | null>(null);
 
   async function loadData() {
     try {
@@ -187,6 +190,19 @@ export default function AdminContributionsPage() {
                         <strong className="text-amber-900">{c.grainQuantityKg} KG Food Grains</strong>
                       </span>
                     )}
+                    {c.paymentProofUrl && (
+                      <div className="mt-1">
+                        <button
+                          type="button"
+                          onClick={() => setProofModalTarget(c)}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 transition-colors"
+                          title="View Verified Payment Screenshot"
+                        >
+                          <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                          <span>View Proof</span>
+                        </button>
+                      </div>
+                    )}
                   </td>
                   <td className="py-3 px-4 text-right font-black text-[#155e42] whitespace-nowrap">
                     +{formatKg(c.equivalentKg)}
@@ -245,6 +261,22 @@ export default function AdminContributionsPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* PAYMENT PROOF LIGHTBOX MODAL */}
+      {proofModalTarget && (
+        <PaymentProofModal
+          isOpen={!!proofModalTarget}
+          onClose={() => setProofModalTarget(null)}
+          proofUrl={proofModalTarget.paymentProofUrl}
+          studentName={proofModalTarget.studentName}
+          classId={proofModalTarget.classId}
+          moneyAmount={proofModalTarget.moneyAmount}
+          equivalentKg={proofModalTarget.equivalentKg}
+          createdAt={proofModalTarget.createdAt}
+          recordedBy={proofModalTarget.recordedByName || proofModalTarget.recordedBy}
+          notes={proofModalTarget.notes}
+        />
       )}
     </div>
   );

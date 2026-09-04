@@ -51,13 +51,43 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { studentId, classId, type, moneyAmount, grainType, grainQuantityKg, notes } = body;
+    const { studentId, classId, type, moneyAmount, grainType, grainQuantityKg, paymentProofUrl, notes } = body;
 
     if (!studentId || !classId || !type) {
       return NextResponse.json(
         { error: 'Missing required contribution parameters.' },
         { status: 400 }
       );
+    }
+
+    // Mandatory payment proof screenshot validation for monetary entries
+    const isMonetary = type === 'money' || type === 'both';
+    if (isMonetary) {
+      if (!paymentProofUrl || typeof paymentProofUrl !== 'string' || !paymentProofUrl.trim()) {
+        return NextResponse.json(
+          { error: 'Payment verification screenshot is mandatory for all monetary contributions.' },
+          { status: 400 }
+        );
+      }
+
+      if (
+        !paymentProofUrl.startsWith('data:image/') &&
+        !paymentProofUrl.startsWith('http://') &&
+        !paymentProofUrl.startsWith('https://')
+      ) {
+        return NextResponse.json(
+          { error: 'Invalid payment proof format. Must be a valid image data URI or URL.' },
+          { status: 400 }
+        );
+      }
+
+      // Safeguard: payload must not exceed ~600KB Base64 length
+      if (paymentProofUrl.length > 800000) {
+        return NextResponse.json(
+          { error: 'Payment verification screenshot exceeds maximum size limit (must be compressed under 500KB).' },
+          { status: 400 }
+        );
+      }
     }
 
     // Role-based security check: CR cannot record for another class (Security Test 2)
@@ -82,6 +112,7 @@ export async function POST(req: NextRequest) {
       moneyAmount: Number(moneyAmount) || 0,
       grainType: grainType || null,
       grainQuantityKg: Number(grainQuantityKg) || 0,
+      paymentProofUrl: isMonetary ? paymentProofUrl : null,
       notes,
       actor: {
         uid: user.uid,
@@ -107,7 +138,7 @@ export async function PUT(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { contributionId, classId, type, moneyAmount, grainType, grainQuantityKg, notes } = body;
+    const { contributionId, classId, type, moneyAmount, grainType, grainQuantityKg, paymentProofUrl, notes } = body;
 
     if (!contributionId || !classId) {
       return NextResponse.json(
@@ -123,11 +154,32 @@ export async function PUT(req: NextRequest) {
       );
     }
 
+    // Validate paymentProofUrl format if provided
+    if (paymentProofUrl) {
+      if (
+        !paymentProofUrl.startsWith('data:image/') &&
+        !paymentProofUrl.startsWith('http://') &&
+        !paymentProofUrl.startsWith('https://')
+      ) {
+        return NextResponse.json(
+          { error: 'Invalid payment proof format. Must be an image data URI or URL.' },
+          { status: 400 }
+        );
+      }
+      if (paymentProofUrl.length > 800000) {
+        return NextResponse.json(
+          { error: 'Payment verification screenshot exceeds maximum size limit.' },
+          { status: 400 }
+        );
+      }
+    }
+
     const updated = await editContribution(contributionId, {
       type,
       moneyAmount: Number(moneyAmount) || 0,
       grainType: grainType || null,
       grainQuantityKg: Number(grainQuantityKg) || 0,
+      paymentProofUrl,
       notes,
       actor: {
         uid: user.uid,
