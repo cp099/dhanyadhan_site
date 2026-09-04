@@ -226,9 +226,9 @@ export default async function AdminDashboardPage() {
       </section>
 
       {/* 4. Main Workspace Grid: 1 Col Left (Rules & Compliance), 2 Cols Right (Audit Table & Ledger) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* LEFT COLUMN (4 Cols) */}
-        <div className="lg:col-span-4 space-y-6">
+      <div className="flex flex-col lg:flex-row gap-8 items-start">
+        {/* LEFT COLUMN: Fixed 380px Desktop Width */}
+        <div className="w-full lg:w-[380px] lg:flex-shrink-0 space-y-6">
           {/* Campaign Target & Conversion Rules Inline Card */}
           <CampaignConfigCard
             initialTargetKg={config.targetKg}
@@ -289,8 +289,8 @@ export default async function AdminDashboardPage() {
           </div>
         </div>
 
-        {/* RIGHT COLUMN (8 Cols) */}
-        <div className="lg:col-span-8 space-y-6">
+        {/* RIGHT COLUMN: Fills All Remaining Width */}
+        <div className="w-full lg:flex-1 min-w-0 space-y-6">
           {/* Master 17-Class Audit Table Component with Year Filtering and Search */}
           <MasterAuditTable classes={sortedClasses} />
 

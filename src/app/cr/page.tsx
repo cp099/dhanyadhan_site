@@ -189,9 +189,9 @@ export default async function CrDashboardPage() {
       </section>
 
       {/* 3. Main Workspace: Left Analytics & Right Roster + Ledger */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* LEFT COLUMN (4 Cols): Competitive Standings & Operations */}
-        <div className="lg:col-span-4 space-y-6">
+      <div className="flex flex-col lg:flex-row gap-8 items-start">
+        {/* LEFT COLUMN: Fixed 380px Desktop Width */}
+        <div className="w-full lg:w-[380px] lg:flex-shrink-0 space-y-6">
           {/* Competitive Standings Analysis Card */}
           <div className="bg-white p-6 rounded-3xl border border-[#e6e2d8] ambient-shadow space-y-4">
             <h3 className="text-sm font-black font-headline text-[#0a241b] flex items-center gap-2">
@@ -287,8 +287,8 @@ export default async function CrDashboardPage() {
           </div>
         </div>
 
-        {/* RIGHT COLUMN (8 Cols): Roster Table & Recent Class Ledger */}
-        <div className="lg:col-span-8 space-y-6">
+        {/* RIGHT COLUMN: Fills All Remaining Width */}
+        <div className="w-full lg:flex-1 min-w-0 space-y-6">
           {/* Interactive Class Student Roster Component */}
           <CrStudentRosterTable students={students} classId={classId} />
 
