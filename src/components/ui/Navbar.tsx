@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Sprout, Menu, X, Shield, Users, GraduationCap, LogOut, User } from 'lucide-react';
+import { Sprout, Menu, X, Shield, Users, GraduationCap, LogOut } from 'lucide-react';
 import { UserProfile } from '@/lib/types';
 
 export function Navbar() {
@@ -12,6 +12,8 @@ export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [loadingUser, setLoadingUser] = useState(true);
+
+  const isHomePage = pathname === '/';
 
   // Check user session
   useEffect(() => {
@@ -53,8 +55,8 @@ export function Navbar() {
     <header className="sticky top-0 z-50 bg-[#0a241b]/95 backdrop-blur-md border-b border-[#155e42]/50 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          {/* Brand Logo & Name */}
-          <Link href="/" className="flex items-center space-x-3 group">
+          {/* Brand Logo & Name (Anchored Left) */}
+          <Link href="/" className="flex items-center space-x-3 group shrink-0">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#22c55e] to-[#155e42] flex items-center justify-center shadow-md shadow-[#22c55e]/20 group-hover:scale-105 transition-transform">
               <Sprout className="w-6 h-6 text-white" />
             </div>
@@ -68,35 +70,35 @@ export function Navbar() {
             </div>
           </Link>
 
-          {/* Desktop Navigation Links */}
-          <nav className="hidden md:flex items-center space-x-1 lg:space-x-2">
-            <Link
-              href="/#progress"
-              className="px-3 py-2 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-[#155e42]/40 transition-colors"
-            >
-              Campaign Progress
-            </Link>
-            <Link
-              href="/#leaderboard"
-              className="px-3 py-2 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-[#155e42]/40 transition-colors"
-            >
-              Leaderboard
-            </Link>
-            <Link
-              href="/#about"
-              className="px-3 py-2 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-[#155e42]/40 transition-colors"
-            >
-              About & SDG Mission
-            </Link>
-          </nav>
+          {/* Desktop Navigation & Actions (Cleanly Grouped & Right-Aligned) */}
+          <div className="hidden md:flex items-center space-x-3 lg:space-x-4">
+            <nav className="flex items-center space-x-1 lg:space-x-2">
+              <Link
+                href="/#progress"
+                className="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
+              >
+                Campaign Progress
+              </Link>
+              <Link
+                href="/#leaderboard"
+                className="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
+              >
+                Leaderboard
+              </Link>
+              <Link
+                href="/#about"
+                className="px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
+              >
+                About & SDG Mission
+              </Link>
+            </nav>
 
-          {/* Single Unified Authentication Portal */}
-          <div className="hidden md:flex items-center space-x-3">
-            {!loadingUser && currentUser ? (
-              <div className="flex items-center space-x-2">
+            {/* Auth / Console Portal - ONLY visible on internal/console routes, NEVER on the public home page */}
+            {!isHomePage && !loadingUser && currentUser && (
+              <div className="flex items-center space-x-2 pl-3 border-l border-[#155e42]/60">
                 <Link
                   href={isAdmin ? '/admin' : isFaculty ? '/faculty' : '/cr'}
-                  className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all ${
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
                     isAdmin
                       ? 'bg-amber-400 text-amber-950 border-amber-400 hover:bg-amber-300'
                       : isFaculty
@@ -129,7 +131,7 @@ export function Navbar() {
                   <LogOut className="w-4 h-4" />
                 </button>
               </div>
-            ) : null}
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -170,49 +172,48 @@ export function Navbar() {
             About & SDG Mission
           </Link>
 
-          <div className="pt-3 border-t border-[#155e42]">
-            {currentUser ? (
-              <div className="space-y-2">
-                <Link
-                  href={isAdmin ? '/admin' : isFaculty ? '/faculty' : '/cr'}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm ${
-                    isAdmin
-                      ? 'bg-amber-400 text-amber-950'
-                      : isFaculty
-                      ? 'bg-blue-400 text-blue-950'
-                      : 'bg-[#22c55e] text-[#0a241b]'
-                  }`}
-                >
-                  {isAdmin ? (
-                    <Shield className="w-4 h-4" />
-                  ) : isFaculty ? (
-                    <GraduationCap className="w-4 h-4" />
-                  ) : (
-                    <Users className="w-4 h-4" />
-                  )}
-                  <span>
-                    {isAdmin
-                      ? 'SDG Admin Console'
-                      : isFaculty
-                      ? 'Faculty Console'
-                      : `CR Console (${currentUser.classId})`}
-                  </span>
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    handleLogout();
-                  }}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-white/10 text-gray-300 font-semibold text-xs"
-                >
-                  <LogOut className="w-3.5 h-3.5" />
-                  Sign Out
-                </button>
-              </div>
-            ) : null}
-          </div>
+          {/* Mobile Auth / Console Portal - ONLY on internal/console routes, NEVER on the home page */}
+          {!isHomePage && currentUser && (
+            <div className="pt-3 border-t border-[#155e42] space-y-2">
+              <Link
+                href={isAdmin ? '/admin' : isFaculty ? '/faculty' : '/cr'}
+                onClick={() => setMobileMenuOpen(false)}
+                className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm ${
+                  isAdmin
+                    ? 'bg-amber-400 text-amber-950'
+                    : isFaculty
+                    ? 'bg-blue-400 text-blue-950'
+                    : 'bg-[#22c55e] text-[#0a241b]'
+                }`}
+              >
+                {isAdmin ? (
+                  <Shield className="w-4 h-4" />
+                ) : isFaculty ? (
+                  <GraduationCap className="w-4 h-4" />
+                ) : (
+                  <Users className="w-4 h-4" />
+                )}
+                <span>
+                  {isAdmin
+                    ? 'SDG Admin Console'
+                    : isFaculty
+                    ? 'Faculty Console'
+                    : `CR Console (${currentUser.classId})`}
+                </span>
+              </Link>
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  handleLogout();
+                }}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-white/10 text-gray-300 font-semibold text-xs"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                Sign Out
+              </button>
+            </div>
+          )}
         </div>
       )}
     </header>
