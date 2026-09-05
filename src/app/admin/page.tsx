@@ -40,7 +40,12 @@ export default async function AdminDashboardPage() {
     getAllContributions(),
   ]);
 
-  const sortedClasses = [...classes].sort((a, b) => a.currentRank - b.currentRank);
+  const sortedClasses = [...classes].sort((a, b) => {
+    if (a.currentRank && b.currentRank) return a.currentRank - b.currentRank;
+    if (a.currentRank) return -1;
+    if (b.currentRank) return 1;
+    return a.name.localeCompare(b.name);
+  });
 
   const targetKg = summary.targetKg || 0;
   const currentKg = summary.totalImpactKg || 0;

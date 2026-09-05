@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
     ];
 
     const rows = classes.map((c) => [
-      c.currentRank,
+      c.currentRank ?? 'Unranked',
       c.name,
       c.program,
       c.year,
@@ -115,7 +115,7 @@ export async function GET(req: NextRequest) {
 
     csvContent = [
       `"CLASS REPORT: ${classDoc.name} (${classDoc.year} - ${classDoc.program})"`,
-      `"Class Rank",${escapeCsv(classDoc.currentRank)}`,
+      `"Class Rank",${escapeCsv(classDoc.currentRank ?? 'Unranked')}`,
       `"Total Equivalent Impact KG",${escapeCsv(classDoc.totalEquivalentKg)}`,
       `"Unique Contributors",${escapeCsv(classDoc.contributorCount)}`,
       '',

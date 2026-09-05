@@ -26,12 +26,16 @@ export default async function ClassDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  // Find nearby competitors in the 17-class standings
-  const sortedClasses = [...allClasses].sort((a, b) => a.currentRank - b.currentRank);
-  const currentIndex = sortedClasses.findIndex((c) => c.id === slug);
-  const classAbove = currentIndex > 0 ? sortedClasses[currentIndex - 1] : null;
+  // Find nearby competitors in the standings among ranked classes
+  const rankedClasses = [...allClasses]
+    .filter((c) => typeof c.currentRank === 'number' && c.currentRank > 0)
+    .sort((a, b) => (a.currentRank || 0) - (b.currentRank || 0));
+
+  const isClassRanked = typeof classData.currentRank === 'number' && classData.currentRank > 0;
+  const currentIndex = isClassRanked ? rankedClasses.findIndex((c) => c.id === slug) : -1;
+  const classAbove = currentIndex > 0 ? rankedClasses[currentIndex - 1] : null;
   const classBelow =
-    currentIndex < sortedClasses.length - 1 ? sortedClasses[currentIndex + 1] : null;
+    currentIndex >= 0 && currentIndex < rankedClasses.length - 1 ? rankedClasses[currentIndex + 1] : null;
 
   const gapToAbove = classAbove
     ? Math.max(0, Math.round((classAbove.totalEquivalentKg - classData.totalEquivalentKg) * 100) / 100)
@@ -79,9 +83,11 @@ export default async function ClassDetailPage({ params }: PageProps) {
               <div className="flex items-center justify-center gap-1.5">
                 <Trophy className="w-5 h-5 text-amber-400" />
                 <span className="text-3xl font-black text-amber-300">
-                  #{classData.currentRank}
+                  {isClassRanked ? `#${classData.currentRank}` : '—'}
                 </span>
-                <span className="text-xs text-gray-300">/ 17</span>
+                {isClassRanked && (
+                  <span className="text-xs text-gray-300">/ {rankedClasses.length}</span>
+                )}
               </div>
             </div>
 
@@ -98,7 +104,7 @@ export default async function ClassDetailPage({ params }: PageProps) {
         </div>
 
         {/* Nearby Competitors Bar */}
-        {(classAbove || classBelow) && (
+        {isClassRanked && (classAbove || classBelow) ? (
           <div className="mt-8 pt-6 border-t border-white/15 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             {classAbove ? (
               <div className="bg-white/5 p-3 rounded-xl flex items-center justify-between border border-white/10">
@@ -127,7 +133,11 @@ export default async function ClassDetailPage({ params }: PageProps) {
               </div>
             )}
           </div>
-        )}
+        ) : !isClassRanked ? (
+          <div className="mt-8 pt-6 border-t border-white/15 text-center text-xs text-gray-300">
+            No contributions recorded yet. Log food grain or monetary donations to appear on the department leaderboard!
+          </div>
+        ) : null}
       </div>
 
       {/* Public Student Leaderboard: Names & Ranks ONLY */}

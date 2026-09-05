@@ -25,7 +25,7 @@ export interface ClassDoc extends ClassMetadata {
   totalEquivalentKg: number;
   contributorCount: number; // Unique students who contributed
   contributionCount: number; // Total contribution submissions
-  currentRank: number;
+  currentRank?: number | null;
   crUserId?: string | null;
   crEmail?: string | null;
   crName?: string | null;
@@ -160,7 +160,7 @@ export interface PublicStudentLeaderboardEntry {
 export interface PublicClassLeaderboard {
   classId: string;
   className: string;
-  rank: number;
+  rank?: number | null;
   impactKg: number;
   contributorCount: number;
   students: PublicStudentLeaderboardEntry[];

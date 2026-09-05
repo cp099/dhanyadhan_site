@@ -7,7 +7,12 @@ export const dynamic = 'force-dynamic';
 
 export default async function AdminClassesPage() {
   const classes = await getAllClasses();
-  const sorted = [...classes].sort((a, b) => a.currentRank - b.currentRank);
+  const sorted = [...classes].sort((a, b) => {
+    if (a.currentRank && b.currentRank) return a.currentRank - b.currentRank;
+    if (a.currentRank) return -1;
+    if (b.currentRank) return 1;
+    return a.name.localeCompare(b.name);
+  });
 
   return (
     <div className="space-y-6">
@@ -52,7 +57,7 @@ export default async function AdminClassesPage() {
                           : 'bg-gray-100 text-gray-700'
                       }`}
                     >
-                      #{c.currentRank}
+                      {c.currentRank ? `#${c.currentRank}` : '—'}
                     </span>
                   </td>
                   <td className="py-3.5 px-4 font-bold text-[#0a241b]">

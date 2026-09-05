@@ -42,7 +42,7 @@ function initializeEmptyDatabase(): DatabaseSchema {
       totalEquivalentKg: 0,
       contributorCount: 0,
       contributionCount: 0,
-      currentRank: 1,
+      currentRank: null,
       crUserId: null,
       crEmail: null,
       crName: null,
@@ -50,22 +50,14 @@ function initializeEmptyDatabase(): DatabaseSchema {
     };
   });
 
-  const publicLeaderboardItems: PublicLeaderboardItem[] = OFFICIAL_CLASSES.map((c, index) => ({
-    rank: index + 1,
-    classId: c.id,
-    className: c.name,
-    year: c.year,
-    program: c.program,
-    impactKg: 0,
-    contributorCount: 0,
-  }));
+  const publicLeaderboardItems: PublicLeaderboardItem[] = [];
 
   const publicClassLeaderboards: Record<string, PublicClassLeaderboard> = {};
-  OFFICIAL_CLASSES.forEach((c, index) => {
+  OFFICIAL_CLASSES.forEach((c) => {
     publicClassLeaderboards[c.id] = {
       classId: c.id,
       className: c.name,
-      rank: index + 1,
+      rank: null,
       impactKg: 0,
       contributorCount: 0,
       students: [],
@@ -426,7 +418,8 @@ export async function getPublicCampaignSummary(): Promise<PublicCampaignSummary>
 
 export async function getPublicLeaderboard(): Promise<PublicLeaderboardItem[]> {
   const db = getDatabase();
-  return db.publicLeaderboard.allClasses?.items || [];
+  const items = db.publicLeaderboard.allClasses?.items || [];
+  return items.filter((i) => (i.impactKg || 0) > 0);
 }
 
 export async function getPublicClassLeaderboard(
@@ -440,7 +433,10 @@ export async function getPublicClassLeaderboard(
 
 export async function getAllClasses(): Promise<ClassDoc[]> {
   const db = getDatabase();
-  return sortClassesWithRanks(Object.values(db.classes));
+  const contributing = Object.values(db.classes).filter((c) => (c.totalEquivalentKg || 0) > 0);
+  const nonContributing = Object.values(db.classes).filter((c) => (c.totalEquivalentKg || 0) <= 0);
+  const ranked = sortClassesWithRanks(contributing);
+  return [...ranked, ...nonContributing];
 }
 
 export async function getClass(classId: string): Promise<ClassDoc | null> {
@@ -513,16 +509,18 @@ function updateCascadingAggregates(db: DatabaseSchema, targetClassId: string): v
   classObj.contributionCount = contributionCount;
   classObj.updatedAt = new Date().toISOString();
 
-  // 2. Recalculate Ranks across all 17 classes deterministically
-  const rankedClasses = sortClassesWithRanks(Object.values(db.classes));
-  rankedClasses.forEach((c) => {
-    db.classes[c.id].currentRank = c.currentRank;
+  // 2. Recalculate Ranks only across classes that have recorded contributions
+  const contributingClasses = Object.values(db.classes).filter((c) => (c.totalEquivalentKg || 0) > 0);
+  const rankedClasses = sortClassesWithRanks(contributingClasses);
+  Object.values(db.classes).forEach((c) => {
+    const ranked = rankedClasses.find((r) => r.id === c.id);
+    c.currentRank = ranked ? ranked.currentRank : null;
   });
 
-  // 3. Update publicLeaderboard/allClasses
+  // 3. Update publicLeaderboard/allClasses (Only classes with donations appear on the leaderboard)
   db.publicLeaderboard.allClasses = {
     items: rankedClasses.map((c) => ({
-      rank: c.currentRank,
+      rank: c.currentRank!,
       classId: c.id,
       className: c.name,
       year: c.year,

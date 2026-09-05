@@ -80,7 +80,10 @@ export function calculateEquivalentKg(
  * 4. Quaternary: class name (alphabetical, ascending)
  */
 export function sortClassesWithRanks(classes: ClassDoc[]): ClassDoc[] {
-  const sorted = [...classes].sort((a, b) => {
+  // Only classes that have recorded contributions appear and receive a rank:
+  const contributing = classes.filter((c) => (c.totalEquivalentKg || 0) > 0);
+
+  const sorted = [...contributing].sort((a, b) => {
     if (b.totalEquivalentKg !== a.totalEquivalentKg) {
       return b.totalEquivalentKg - a.totalEquivalentKg;
     }

@@ -85,7 +85,7 @@ export default async function AdminClassDetailPage({ params }: PageProps) {
               Department Rank
             </span>
             <span className="text-2xl font-black text-amber-400">
-              #{classDoc.currentRank}
+              {classDoc.currentRank ? `#${classDoc.currentRank}` : '—'}
             </span>
           </div>
         </div>

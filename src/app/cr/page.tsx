@@ -52,12 +52,16 @@ export default async function CrDashboardPage() {
     return <div className="p-8 text-center text-sm text-[#526359]">Class not found.</div>;
   }
 
-  // Calculate competitor gaps
-  const sortedClasses = [...allClasses].sort((a, b) => a.currentRank - b.currentRank);
-  const currentIndex = sortedClasses.findIndex((c) => c.id === classId);
-  const classAbove = currentIndex > 0 ? sortedClasses[currentIndex - 1] : null;
+  // Calculate competitor gaps among contributing/ranked classes
+  const rankedClasses = [...allClasses]
+    .filter((c) => typeof c.currentRank === 'number' && c.currentRank > 0)
+    .sort((a, b) => (a.currentRank || 0) - (b.currentRank || 0));
+
+  const isClassRanked = typeof classDoc.currentRank === 'number' && classDoc.currentRank > 0;
+  const currentIndex = isClassRanked ? rankedClasses.findIndex((c) => c.id === classId) : -1;
+  const classAbove = currentIndex > 0 ? rankedClasses[currentIndex - 1] : null;
   const classBelow =
-    currentIndex < sortedClasses.length - 1 ? sortedClasses[currentIndex + 1] : null;
+    currentIndex >= 0 && currentIndex < rankedClasses.length - 1 ? rankedClasses[currentIndex + 1] : null;
 
   const gapToAbove = classAbove
     ? Math.max(0, Math.round((classAbove.totalEquivalentKg - classDoc.totalEquivalentKg) * 100) / 100)
@@ -120,7 +124,7 @@ export default async function CrDashboardPage() {
           </div>
           <div className="flex items-center gap-1.5 text-xs font-bold text-amber-800 bg-amber-500/10 w-fit px-2.5 py-1 rounded-full border border-amber-400/30">
             <Trophy className="w-3.5 h-3.5 text-amber-600" />
-            <span>Rank #{classDoc.currentRank} of 17 Classes</span>
+            <span>{isClassRanked ? `Rank #${classDoc.currentRank} of ${rankedClasses.length} Ranked Classes` : 'Unranked (0 kg)'}</span>
           </div>
         </div>
 
@@ -200,47 +204,60 @@ export default async function CrDashboardPage() {
             </h3>
 
             <div className="space-y-3">
-              {/* Position Ahead */}
-              <div className="bg-[#fcf9f3] p-4 rounded-2xl border border-[#e6e2d8]">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#526359] block mb-1">
-                  Class Above
-                </span>
-                {classAbove ? (
-                  <div>
-                    <p className="text-xs font-bold text-[#0a241b]">
-                      #{classAbove.currentRank} {classAbove.name} ({formatKg(classAbove.totalEquivalentKg)})
-                    </p>
-                    <p className="text-xs text-amber-700 font-semibold mt-1">
-                      Need <strong>{formatKg(gapToAbove)}</strong> equivalent impact to overtake!
-                    </p>
-                  </div>
-                ) : (
-                  <p className="text-xs font-bold text-emerald-700 flex items-center gap-1">
-                    🥇 Leading the Department in 1st Place!
+              {!isClassRanked ? (
+                <div className="bg-[#fcf9f3] p-4 rounded-2xl border border-[#e6e2d8] text-center">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#526359] block mb-1">
+                    Leaderboard Status
+                  </span>
+                  <p className="text-xs text-[#526359] mt-1">
+                    No contributions recorded yet. Record student contributions to enter the official department leaderboard!
                   </p>
-                )}
-              </div>
+                </div>
+              ) : (
+                <>
+                  {/* Position Ahead */}
+                  <div className="bg-[#fcf9f3] p-4 rounded-2xl border border-[#e6e2d8]">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#526359] block mb-1">
+                      Class Above
+                    </span>
+                    {classAbove ? (
+                      <div>
+                        <p className="text-xs font-bold text-[#0a241b]">
+                          #{classAbove.currentRank} {classAbove.name} ({formatKg(classAbove.totalEquivalentKg)})
+                        </p>
+                        <p className="text-xs text-amber-700 font-semibold mt-1">
+                          Need <strong>{formatKg(gapToAbove)}</strong> equivalent impact to overtake!
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-xs font-bold text-emerald-700 flex items-center gap-1">
+                        🥇 Leading the Department in 1st Place!
+                      </p>
+                    )}
+                  </div>
 
-              {/* Position Behind */}
-              <div className="bg-[#fcf9f3] p-4 rounded-2xl border border-[#e6e2d8]">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#526359] block mb-1">
-                  Class Behind
-                </span>
-                {classBelow ? (
-                  <div>
-                    <p className="text-xs font-bold text-[#0a241b]">
-                      #{classBelow.currentRank} {classBelow.name} ({formatKg(classBelow.totalEquivalentKg)})
-                    </p>
-                    <p className="text-xs text-emerald-700 font-semibold mt-1">
-                      Holding a <strong>+{formatKg(gapToBelow)}</strong> impact lead.
-                    </p>
+                  {/* Position Behind */}
+                  <div className="bg-[#fcf9f3] p-4 rounded-2xl border border-[#e6e2d8]">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#526359] block mb-1">
+                      Class Behind
+                    </span>
+                    {classBelow ? (
+                      <div>
+                        <p className="text-xs font-bold text-[#0a241b]">
+                          #{classBelow.currentRank} {classBelow.name} ({formatKg(classBelow.totalEquivalentKg)})
+                        </p>
+                        <p className="text-xs text-emerald-700 font-semibold mt-1">
+                          Holding a <strong>+{formatKg(gapToBelow)}</strong> impact lead.
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-[#526359]">
+                        Log contributions to climb the leaderboard rankings.
+                      </p>
+                    )}
                   </div>
-                ) : (
-                  <p className="text-xs text-[#526359]">
-                    Log contributions to climb the leaderboard rankings.
-                  </p>
-                )}
-              </div>
+                </>
+              )}
             </div>
           </div>
 

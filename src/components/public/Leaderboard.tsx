@@ -28,8 +28,11 @@ export function Leaderboard({ items }: LeaderboardProps) {
   const [classStudents, setClassStudents] = useState<Record<string, PublicStudentLeaderboardEntry[]>>({});
   const [loadingClass, setLoadingClass] = useState<string | null>(null);
 
+  // Only classes that have recorded contributions appear on the leaderboard
+  const contributingItems = items.filter((i) => (i.impactKg || 0) > 0);
+
   // Sort items by rank
-  const sorted = [...items].sort((a, b) => a.rank - b.rank);
+  const sorted = [...contributingItems].sort((a, b) => a.rank - b.rank);
 
   // Separate top 3 podium
   const top1 = sorted.find((i) => i.rank === 1);
@@ -81,123 +84,149 @@ export function Leaderboard({ items }: LeaderboardProps) {
           <span>Official Department Competition</span>
         </div>
         <h2 className="text-3xl sm:text-4xl font-extrabold font-headline text-[#0a241b] tracking-tight">
-          Main 17-Class Leaderboard
+          Department Class Leaderboard
         </h2>
         <p className="mt-2.5 text-[#526359] text-sm sm:text-base leading-relaxed">
-          All 17 classes compete in one unified leaderboard based on official Equivalent Impact KG. Click any class to inspect the student contributors list.
+          Classes compete based on verified Equivalent Impact KG. Only classes with recorded donations appear on the official standings.
         </p>
       </div>
 
-      {/* Top 3 Podium Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 items-end">
-        {/* 2nd Place (Silver) */}
-        {top2 && (
-          <Link
-            href={`/class/${top2.classId}`}
-            className="order-2 md:order-1 block rounded-3xl p-6 border-2 border-slate-300 transition-card bg-gradient-to-b from-slate-50 to-slate-100/60 ambient-shadow relative overflow-hidden group"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <span className="w-10 h-10 rounded-2xl bg-slate-300 text-slate-800 font-black font-headline text-lg flex items-center justify-center shadow-xs">
-                2
-              </span>
-              <Medal className="w-8 h-8 text-slate-400 group-hover:scale-110 transition-transform" />
-            </div>
-            <h3 className="text-2xl font-bold font-headline text-slate-900 mb-1">{top2.className}</h3>
-            <span className="text-xs text-slate-600 font-medium">{top2.program}</span>
-
-            <div className="mt-6 pt-4 border-t border-slate-300/60 flex justify-between items-baseline">
-              <div>
-                <span className="text-xs text-slate-600 block">Class Impact</span>
-                <span className="text-2xl font-black font-headline text-slate-900">{formatKg(top2.impactKg)}</span>
-              </div>
-              <div className="text-right">
-                <span className="text-xs text-slate-600 block">Contributors</span>
-                <span className="text-sm font-bold text-slate-800 flex items-center gap-1 justify-end">
-                  <Users className="w-3.5 h-3.5" />
-                  {top2.contributorCount}
+      {/* Top 3 Podium Cards or Empty State */}
+      {sorted.length === 0 ? (
+        <div className="bg-white rounded-3xl p-8 sm:p-12 text-center border border-[#e6e2d8] ambient-shadow mb-12 space-y-3">
+          <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto border border-amber-200">
+            <Trophy className="w-7 h-7 text-amber-500" />
+          </div>
+          <div className="max-w-md mx-auto space-y-1">
+            <h3 className="text-lg sm:text-xl font-bold font-headline text-[#0a241b]">
+              Leaderboard Awaiting First Contributions
+            </h3>
+            <p className="text-xs sm:text-sm text-[#526359] leading-relaxed">
+              Classes appear on the official leaderboard as soon as their Class Representative logs their first food grain or verified monetary contribution.
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div
+          className={`grid gap-6 mb-12 items-end ${
+            sorted.length === 1
+              ? 'grid-cols-1 max-w-md mx-auto'
+              : sorted.length === 2
+              ? 'grid-cols-1 md:grid-cols-2 max-w-2xl mx-auto'
+              : 'grid-cols-1 md:grid-cols-3'
+          }`}
+        >
+          {/* 2nd Place (Silver) */}
+          {top2 && (
+            <Link
+              href={`/class/${top2.classId}`}
+              className="order-2 md:order-1 block rounded-3xl p-6 border-2 border-slate-300 transition-card bg-gradient-to-b from-slate-50 to-slate-100/60 ambient-shadow relative overflow-hidden group"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <span className="w-10 h-10 rounded-2xl bg-slate-300 text-slate-800 font-black font-headline text-lg flex items-center justify-center shadow-xs">
+                  2
                 </span>
+                <Medal className="w-8 h-8 text-slate-400 group-hover:scale-110 transition-transform" />
               </div>
-            </div>
-          </Link>
-        )}
+              <h3 className="text-2xl font-bold font-headline text-slate-900 mb-1">{top2.className}</h3>
+              <span className="text-xs text-slate-600 font-medium">{top2.program}</span>
 
-        {/* 1st Place (Gold) */}
-        {top1 && (
-          <Link
-            href={`/class/${top1.classId}`}
-            className="order-1 md:order-2 block rounded-3xl p-8 border-2 border-amber-400 transition-card bg-gradient-to-b from-amber-50 to-amber-100/50 ambient-shadow relative overflow-hidden group md:-translate-y-4"
-          >
-            <div className="absolute -top-6 -right-6 w-28 h-28 bg-amber-400/20 rounded-full blur-xl pointer-events-none" />
-            <div className="flex items-center justify-between mb-4">
-              <span className="w-12 h-12 rounded-2xl bg-amber-400 text-amber-950 font-black font-headline text-2xl flex items-center justify-center shadow-md">
-                1
-              </span>
-              <Trophy className="w-10 h-10 text-amber-500 group-hover:scale-110 transition-transform animate-pulse" />
-            </div>
-            <div className="inline-block px-3 py-1 rounded-full bg-amber-400/30 text-amber-900 text-xs font-bold uppercase tracking-wider mb-2">
-              🥇 Current Leader
-            </div>
-            <h3 className="text-3xl font-black font-headline text-amber-950 mb-1">{top1.className}</h3>
-            <span className="text-xs text-amber-900/80 font-medium">{top1.program}</span>
-
-            <div className="mt-8 pt-4 border-t border-amber-400/60 flex justify-between items-baseline">
-              <div>
-                <span className="text-xs text-amber-800 block">Class Impact</span>
-                <span className="text-3xl font-black font-headline text-amber-950">{formatKg(top1.impactKg)}</span>
+              <div className="mt-6 pt-4 border-t border-slate-300/60 flex justify-between items-baseline">
+                <div>
+                  <span className="text-xs text-slate-600 block">Class Impact</span>
+                  <span className="text-2xl font-black font-headline text-slate-900">{formatKg(top2.impactKg)}</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-xs text-slate-600 block">Contributors</span>
+                  <span className="text-sm font-bold text-slate-800 flex items-center gap-1 justify-end">
+                    <Users className="w-3.5 h-3.5" />
+                    {top2.contributorCount}
+                  </span>
+                </div>
               </div>
-              <div className="text-right">
-                <span className="text-xs text-amber-800 block">Contributors</span>
-                <span className="text-base font-bold text-amber-950 flex items-center gap-1 justify-end">
-                  <Users className="w-4 h-4" />
-                  {top1.contributorCount}
+            </Link>
+          )}
+
+          {/* 1st Place (Gold) */}
+          {top1 && (
+            <Link
+              href={`/class/${top1.classId}`}
+              className="order-1 md:order-2 block rounded-3xl p-8 border-2 border-amber-400 transition-card bg-gradient-to-b from-amber-50 to-amber-100/50 ambient-shadow relative overflow-hidden group md:-translate-y-4"
+            >
+              <div className="absolute -top-6 -right-6 w-28 h-28 bg-amber-400/20 rounded-full blur-xl pointer-events-none" />
+              <div className="flex items-center justify-between mb-4">
+                <span className="w-12 h-12 rounded-2xl bg-amber-400 text-amber-950 font-black font-headline text-2xl flex items-center justify-center shadow-md">
+                  1
                 </span>
+                <Trophy className="w-10 h-10 text-amber-500 group-hover:scale-110 transition-transform animate-pulse" />
               </div>
-            </div>
-          </Link>
-        )}
-
-        {/* 3rd Place (Bronze) */}
-        {top3 && (
-          <Link
-            href={`/class/${top3.classId}`}
-            className="order-3 block rounded-3xl p-6 border-2 border-amber-700/30 transition-card bg-gradient-to-b from-orange-50 to-orange-100/40 ambient-shadow relative overflow-hidden group"
-          >
-            <div className="flex items-center justify-between mb-4">
-              <span className="w-10 h-10 rounded-2xl bg-amber-700/20 text-amber-900 font-black font-headline text-lg flex items-center justify-center shadow-xs">
-                3
-              </span>
-              <Award className="w-8 h-8 text-amber-700 group-hover:scale-110 transition-transform" />
-            </div>
-            <h3 className="text-2xl font-bold font-headline text-amber-950 mb-1">{top3.className}</h3>
-            <span className="text-xs text-amber-900/80 font-medium">{top3.program}</span>
-
-            <div className="mt-6 pt-4 border-t border-amber-700/30 flex justify-between items-baseline">
-              <div>
-                <span className="text-xs text-amber-800 block">Class Impact</span>
-                <span className="text-2xl font-black font-headline text-amber-950">{formatKg(top3.impactKg)}</span>
+              <div className="inline-block px-3 py-1 rounded-full bg-amber-400/30 text-amber-900 text-xs font-bold uppercase tracking-wider mb-2">
+                🥇 Current Leader
               </div>
-              <div className="text-right">
-                <span className="text-xs text-amber-800 block">Contributors</span>
-                <span className="text-sm font-bold text-amber-950 flex items-center gap-1 justify-end">
-                  <Users className="w-3.5 h-3.5" />
-                  {top3.contributorCount}
+              <h3 className="text-3xl font-black font-headline text-amber-950 mb-1">{top1.className}</h3>
+              <span className="text-xs text-amber-900/80 font-medium">{top1.program}</span>
+
+              <div className="mt-8 pt-4 border-t border-amber-400/60 flex justify-between items-baseline">
+                <div>
+                  <span className="text-xs text-amber-800 block">Class Impact</span>
+                  <span className="text-3xl font-black font-headline text-amber-950">{formatKg(top1.impactKg)}</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-xs text-amber-800 block">Contributors</span>
+                  <span className="text-base font-bold text-amber-950 flex items-center gap-1 justify-end">
+                    <Users className="w-4 h-4" />
+                    {top1.contributorCount}
+                  </span>
+                </div>
+              </div>
+            </Link>
+          )}
+
+          {/* 3rd Place (Bronze) */}
+          {top3 && (
+            <Link
+              href={`/class/${top3.classId}`}
+              className="order-3 block rounded-3xl p-6 border-2 border-amber-700/30 transition-card bg-gradient-to-b from-orange-50 to-orange-100/40 ambient-shadow relative overflow-hidden group"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <span className="w-10 h-10 rounded-2xl bg-amber-700/20 text-amber-900 font-black font-headline text-lg flex items-center justify-center shadow-xs">
+                  3
                 </span>
+                <Award className="w-8 h-8 text-amber-700 group-hover:scale-110 transition-transform" />
               </div>
-            </div>
-          </Link>
-        )}
-      </div>
+              <h3 className="text-2xl font-bold font-headline text-amber-950 mb-1">{top3.className}</h3>
+              <span className="text-xs text-amber-900/80 font-medium">{top3.program}</span>
+
+              <div className="mt-6 pt-4 border-t border-amber-700/30 flex justify-between items-baseline">
+                <div>
+                  <span className="text-xs text-amber-800 block">Class Impact</span>
+                  <span className="text-2xl font-black font-headline text-amber-950">{formatKg(top3.impactKg)}</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-xs text-amber-800 block">Contributors</span>
+                  <span className="text-sm font-bold text-amber-950 flex items-center gap-1 justify-end">
+                    <Users className="w-3.5 h-3.5" />
+                    {top3.contributorCount}
+                  </span>
+                </div>
+              </div>
+            </Link>
+          )}
+        </div>
+      )}
 
       {/* Search & Continuous Standings Table */}
       <div className="bg-white rounded-3xl p-6 sm:p-8 ambient-shadow border border-[#e6e2d8]">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
             <h3 className="text-xl font-black font-headline text-[#0a241b] flex items-center gap-2">
-              <span>All 17 Classes Standings</span>
-              <span className="text-xs font-normal text-[#526359]">({sorted.length} total classes)</span>
+              <span>Official Class Standings</span>
+              <span className="text-xs font-normal text-[#526359]">
+                ({sorted.length} {sorted.length === 1 ? 'class' : 'classes'} with contributions)
+              </span>
             </h3>
             <p className="text-xs text-[#526359] mt-0.5">
-              Click any class row to expand its student leaderboard.
+              Classes appear on the leaderboard once donations are logged. Click any class row to expand its contributing students.
             </p>
           </div>
 
@@ -406,8 +435,12 @@ export function Leaderboard({ items }: LeaderboardProps) {
         </div>
 
         {filtered.length === 0 && (
-          <div className="py-12 text-center text-[#526359]">
-            <p>No classes matched "{searchTerm}".</p>
+          <div className="py-12 text-center text-[#526359] text-xs sm:text-sm">
+            {searchTerm ? (
+              <p>No contributing classes matched "{searchTerm}".</p>
+            ) : (
+              <p>No class contributions recorded yet. Classes will appear here once donations are logged.</p>
+            )}
           </div>
         )}
       </div>

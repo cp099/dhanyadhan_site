@@ -154,7 +154,7 @@ export function MasterAuditTable({ classes }: MasterAuditTableProps) {
                           : 'bg-gray-100 text-gray-700'
                       }`}
                     >
-                      #{c.currentRank}
+                      {c.currentRank ? `#${c.currentRank}` : '—'}
                     </span>
                   </td>
 
