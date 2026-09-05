@@ -102,7 +102,7 @@ export function ProgressSection({ summary }: ProgressSectionProps) {
             </div>
           </div>
 
-          {/* Granular Breakdown Tiles (Stitch Style) */}
+          {/* Granular Metric Breakdown Tiles */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-[#f4f1eb]">
             <div className="p-4 rounded-2xl bg-[#fcf9f3] border border-[#e6e2d8] flex items-center gap-3.5">
               <div className="w-10 h-10 rounded-xl bg-[#155e42]/10 flex items-center justify-center text-[#155e42] flex-shrink-0">

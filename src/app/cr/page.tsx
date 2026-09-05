@@ -106,7 +106,7 @@ export default async function CrDashboardPage() {
         </div>
       </div>
 
-      {/* 2. Stitch Quick Stats Ribbon (Bento 4-Card Grid) */}
+      {/* 2. Key Metrics Telemetry Grid (Bento 4-Card Grid) */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Total Class Impact */}
         <div className="bg-white rounded-2xl border border-[#e6e2d8] p-6 ambient-shadow flex flex-col justify-between relative overflow-hidden group">

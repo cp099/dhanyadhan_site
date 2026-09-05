@@ -494,6 +494,11 @@ export async function getContributionsByStudent(studentId: string): Promise<Cont
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 }
 
+export async function getContribution(contributionId: string): Promise<ContributionDoc | null> {
+  const db = getDatabase();
+  return db.contributions[contributionId] || null;
+}
+
 export async function getAllContributions(): Promise<ContributionDoc[]> {
   const db = getDatabase();
   return Object.values(db.contributions).sort(
@@ -849,7 +854,11 @@ export async function editContribution(
 
 export async function deleteContribution(
   contributionId: string,
-  actor: { uid: string; email: string; name: string }
+  actor: { uid: string; email: string; name: string },
+  options?: {
+    expectedType?: 'student' | 'faculty';
+    expectedClassId?: string;
+  }
 ): Promise<void> {
   const db = getDatabase();
   const existing = db.contributions[contributionId];
@@ -859,6 +868,16 @@ export async function deleteContribution(
   }
 
   const isFaculty = existing.contributorType === 'faculty' || !!existing.facultyId;
+  if (options?.expectedType === 'student' && isFaculty) {
+    throw new Error('Cannot delete faculty contribution via student contribution path.');
+  }
+  if (options?.expectedType === 'faculty' && !isFaculty) {
+    throw new Error('Cannot delete student contribution via faculty contribution path.');
+  }
+  if (options?.expectedClassId && existing.classId !== options.expectedClassId) {
+    throw new Error(`Contribution does not belong to specified class "${options.expectedClassId}".`);
+  }
+
   delete db.contributions[contributionId];
   recalculateAllAggregates(db);
 
@@ -943,7 +962,7 @@ export async function importStudentsBatch(
   });
 
   students.forEach((row, index) => {
-    const rawClass = (row.classId || '').trim().toLowerCase();
+    const rawClass = typeof row.classId === 'string' ? row.classId.trim().toLowerCase() : String(row.classId || '').trim().toLowerCase();
     const resolvedClassId = classNameToIdMap[rawClass];
 
     if (!resolvedClassId || !validClassIds.has(resolvedClassId)) {
@@ -951,7 +970,8 @@ export async function importStudentsBatch(
       return;
     }
 
-    if (!row.name || !row.name.trim()) {
+    const safeName = typeof row.name === 'string' ? row.name.trim().substring(0, 100) : String(row.name || '').trim().substring(0, 100);
+    if (!safeName) {
       errors.push(`Row ${index + 1}: Student Name cannot be empty.`);
       return;
     }
@@ -961,8 +981,8 @@ export async function importStudentsBatch(
 
     db.students[studentId] = {
       id: studentId,
-      name: row.name.trim(),
-      rollNo: row.rollNo?.trim(),
+      name: safeName,
+      rollNo: row.rollNo != null ? String(row.rollNo).trim().substring(0, 50) : undefined,
       classId: resolvedClassId,
       active: true,
       totalMoney: 0,

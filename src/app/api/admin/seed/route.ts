@@ -3,10 +3,10 @@ import { getCurrentUser } from '@/lib/auth';
 import { seedDevelopmentData } from '@/lib/firebase/admin';
 
 export async function POST(req: NextRequest) {
-  // Allow if in development, or if user is sdg_admin
+  // Security Hardening: Strictly require authenticated SDG Admin in all environments
   const user = await getCurrentUser(req);
-  if (process.env.NODE_ENV === 'production' && (!user || user.role !== 'sdg_admin')) {
-    return NextResponse.json({ error: 'Forbidden.' }, { status: 403 });
+  if (!user || user.role !== 'sdg_admin') {
+    return NextResponse.json({ error: 'Forbidden: SDG Admin authentication required.' }, { status: 403 });
   }
 
   try {

@@ -109,7 +109,7 @@ export default async function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* 3. Stitch 5-Column Bento Telemetry Grid */}
+      {/* 3. Key Operational Telemetry & KPI Grid */}
       <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         {/* Total Equivalent Impact (Spans 2 columns) */}
         <div className="bg-white rounded-2xl border border-[#e6e2d8] p-6 ambient-shadow lg:col-span-2 flex flex-col justify-between relative overflow-hidden group">

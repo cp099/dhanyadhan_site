@@ -10,7 +10,13 @@ export const AUTH_COOKIE_NAME = 'dhanyadhan_session_uid';
  */
 export async function getCurrentUser(req: NextRequest): Promise<UserProfile | null> {
   const cookieUid = req.cookies.get(AUTH_COOKIE_NAME)?.value;
-  const headerUid = req.headers.get('x-user-uid');
+  // Security Hardening: Client-supplied x-user-uid header is untrusted and rejected in production.
+  // Only honored if explicitly enabled by test environment configuration:
+  const isTestRunner = Boolean(
+    process.env.DHANYADHAN_ALLOW_TEST_HEADER === 'true' &&
+    (process.env.DHANYADHAN_DB_FILE || process.env.NODE_ENV === 'test')
+  );
+  const headerUid = isTestRunner ? req.headers.get('x-user-uid') : null;
   const uid = cookieUid || headerUid;
 
   if (!uid) {

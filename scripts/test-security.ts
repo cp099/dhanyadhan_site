@@ -19,12 +19,20 @@ import {
   getPublicLeaderboard,
   getPublicClassLeaderboard,
   getUserProfile,
+  getFacultyContributions,
 } from '../src/lib/firebase/admin';
 import { POST as loginRoute } from '../src/app/api/auth/login/route';
-import { POST as contributionsPostRoute, GET as contributionsGetRoute } from '../src/app/api/contributions/route';
+import {
+  POST as contributionsPostRoute,
+  GET as contributionsGetRoute,
+  PUT as contributionsPutRoute,
+  DELETE as contributionsDeleteRoute,
+} from '../src/app/api/contributions/route';
 import { GET as studentsGetRoute } from '../src/app/api/students/route';
 import { PUT as campaignPutRoute } from '../src/app/api/campaign/route';
 import { POST as crUsersPostRoute } from '../src/app/api/admin/cr-users/route';
+import { POST as adminSeedPostRoute } from '../src/app/api/admin/seed/route';
+import { GET as reportsExportGetRoute } from '../src/app/api/reports/export/route';
 import {
   GET as facultyGetRoute,
   POST as facultyPostRoute,
@@ -34,6 +42,7 @@ import {
 import {
   GET as facultyContrGetRoute,
   POST as facultyContrPostRoute,
+  DELETE as facultyContrDeleteRoute,
 } from '../src/app/api/faculty/contributions/route';
 import { AUTH_COOKIE_NAME } from '../src/lib/auth';
 
@@ -43,13 +52,18 @@ function createMockRequest(
   options?: {
     body?: any;
     userUid?: string;
+    rawHeaders?: Record<string, string>;
   }
 ): NextRequest {
   const headers = new Headers();
   headers.set('Content-Type', 'application/json');
   if (options?.userUid) {
     headers.set('Cookie', `${AUTH_COOKIE_NAME}=${options.userUid}`);
-    headers.set('x-user-uid', options.userUid);
+  }
+  if (options?.rawHeaders) {
+    for (const [k, v] of Object.entries(options.rawHeaders)) {
+      headers.set(k, v);
+    }
   }
 
   return new NextRequest(new URL(url, 'http://localhost:3000'), {
@@ -75,10 +89,15 @@ function assert(condition: boolean, testName: string, detail?: string) {
 async function runSecuritySuite() {
   try {
     console.log('\n======================================================');
-    console.log('   DHANYADHAN: 10 MANDATORY SECURITY & INTEGRITY TESTS');
+    console.log('   DHANYADHAN: 25-SCENARIO DEFENSIVE SECURITY SUITE');
     console.log('======================================================\n');
 
-  // Step 0: Ensure DB seeded with demo config and test accounts
+  // Step 0: Ensure fresh isolated DB
+  if (fs.existsSync(TEST_DB_FILE)) {
+    try {
+      fs.unlinkSync(TEST_DB_FILE);
+    } catch (e) {}
+  }
   await seedDevelopmentData({ applyDemoCampaignConfig: true, sampleStudentsPerClass: 3 });
 
   // Test User Accounts:
@@ -477,6 +496,192 @@ async function runSecuritySuite() {
     res17CRContr.status === 403,
     'Class Admin (CR) blocked from recording faculty contributions (HTTP 403 Forbidden)',
     `Expected status 403, got ${res17CRContr.status}`
+  );
+
+  // ----------------------------------------------------
+  // TEST 18: Untrusted Header Spoofing (x-user-uid) without cookie -> DENIED (HTTP 401)
+  // ----------------------------------------------------
+  console.log('Test 18: Untrusted Header Spoofing (x-user-uid) without cookie is REJECTED');
+  const req18 = createMockRequest('http://localhost:3000/api/students?classId=1-bcom-a', 'GET', {
+    rawHeaders: { 'x-user-uid': 'sdg-admin-1' }, // Spoof attempt without cookie
+  });
+  const res18 = await studentsGetRoute(req18);
+  assert(
+    res18.status === 401,
+    'Spoofed x-user-uid header without valid session cookie is REJECTED (HTTP 401)',
+    `Expected 401, got ${res18.status}`
+  );
+
+  // ----------------------------------------------------
+  // TEST 19: BOLA / IDOR Cross-Class Contribution Modification -> DENIED (HTTP 403)
+  // ----------------------------------------------------
+  console.log('Test 19: BOLA / IDOR Cross-Class Contribution Modification');
+  const contrClassA = await recordContribution({
+    studentId: 'std-seed-1-bcom-a-1',
+    classId: '1-bcom-a',
+    type: 'grain',
+    grainType: 'Rice',
+    grainQuantityKg: 15,
+    actor: { uid: 'sdg-admin-1', email: 'admin@dhanyadhan.edu', name: 'Admin' },
+  });
+
+  // CR of 2-bcom-afa attempts to modify contrClassA:
+  const req19 = createMockRequest('http://localhost:3000/api/contributions', 'PUT', {
+    userUid: 'cr-2-bcom-afa',
+    body: {
+      contributionId: contrClassA.id,
+      classId: '2-bcom-afa', // passes fake classId
+      grainQuantityKg: 50,
+    },
+  });
+  const res19 = await contributionsPutRoute(req19);
+  assert(
+    res19.status === 403,
+    'CR of 2-bcom-afa attempting to edit 1-bcom-a contribution (BOLA/IDOR) is REJECTED (HTTP 403)',
+    `Expected 403, got ${res19.status}`
+  );
+
+  // ----------------------------------------------------
+  // TEST 20: BOLA / IDOR Cross-Class Contribution Deletion -> DENIED (HTTP 403)
+  // ----------------------------------------------------
+  console.log('Test 20: BOLA / IDOR Cross-Class Contribution Deletion');
+  const req20 = createMockRequest(`http://localhost:3000/api/contributions?id=${contrClassA.id}&classId=2-bcom-afa`, 'DELETE', {
+    userUid: 'cr-2-bcom-afa',
+  });
+  const res20 = await contributionsDeleteRoute(req20);
+  assert(
+    res20.status === 403,
+    'CR of 2-bcom-afa attempting to delete 1-bcom-a contribution (BOLA/IDOR) is REJECTED (HTTP 403)',
+    `Expected 403, got ${res20.status}`
+  );
+
+  // ----------------------------------------------------
+  // TEST 21: CR Attempting to Modify or Delete Faculty Contribution -> DENIED (HTTP 403)
+  // ----------------------------------------------------
+  console.log('Test 21: CR Attempting to Modify or Delete Faculty Contribution via Student Endpoint');
+  const facContrs = await getFacultyContributions();
+  const facContribId = facContrs[0]?.id;
+
+  const req21Put = createMockRequest('http://localhost:3000/api/contributions', 'PUT', {
+    userUid: 'cr-2-bcom-afa',
+    body: {
+      contributionId: facContribId,
+      classId: '2-bcom-afa',
+      grainQuantityKg: 10,
+    },
+  });
+  const res21Put = await contributionsPutRoute(req21Put);
+  assert(
+    res21Put.status === 403,
+    'CR attempting to edit Faculty contribution via student endpoint is REJECTED (HTTP 403)',
+    `Expected 403, got ${res21Put.status}`
+  );
+
+  const req21Del = createMockRequest(`http://localhost:3000/api/contributions?id=${facContribId}&classId=2-bcom-afa`, 'DELETE', {
+    userUid: 'cr-2-bcom-afa',
+  });
+  const res21Del = await contributionsDeleteRoute(req21Del);
+  assert(
+    res21Del.status === 403,
+    'CR attempting to delete Faculty contribution via student endpoint is REJECTED (HTTP 403)',
+    `Expected 403, got ${res21Del.status}`
+  );
+
+  // ----------------------------------------------------
+  // TEST 22: Faculty User Deleting Student Contribution -> DENIED (HTTP 403)
+  // ----------------------------------------------------
+  console.log('Test 22: Faculty User Deleting Student Contribution');
+  const req22 = createMockRequest(`http://localhost:3000/api/faculty/contributions?id=${contrClassA.id}`, 'DELETE', {
+    userUid: 'faculty-coord-1',
+  });
+  const res22 = await facultyContrDeleteRoute(req22);
+  assert(
+    res22.status === 403,
+    'Faculty Coordinator attempting to delete student contribution is REJECTED (HTTP 403)',
+    `Expected 403, got ${res22.status}`
+  );
+
+  // ----------------------------------------------------
+  // TEST 23: Negative Number and Cross-Type Parameter Bleeding Injection -> REJECTED / SANITIZED
+  // ----------------------------------------------------
+  console.log('Test 23: Negative Number and Cross-Type Parameter Bleeding Injection');
+  const req23NegMoney = createMockRequest('http://localhost:3000/api/contributions', 'POST', {
+    userUid: 'cr-2-bcom-afa',
+    body: {
+      studentId: 'std-seed-2-bcom-afa-1',
+      classId: '2-bcom-afa',
+      type: 'money',
+      moneyAmount: -500,
+      paymentProofUrl: mockProof,
+    },
+  });
+  const res23NegMoney = await contributionsPostRoute(req23NegMoney);
+  assert(
+    res23NegMoney.status === 400,
+    'Negative money contribution is REJECTED (HTTP 400)',
+    `Expected 400, got ${res23NegMoney.status}`
+  );
+
+  const req23CrossBleed = createMockRequest('http://localhost:3000/api/contributions', 'POST', {
+    userUid: 'cr-2-bcom-afa',
+    body: {
+      studentId: 'std-seed-2-bcom-afa-1',
+      classId: '2-bcom-afa',
+      type: 'grain',
+      grainType: 'Rice',
+      grainQuantityKg: 10,
+      moneyAmount: -500, // Bleeding negative money into grain type
+    },
+  });
+  const res23CrossBleed = await contributionsPostRoute(req23CrossBleed);
+  const data23CrossBleed = await res23CrossBleed.json();
+  assert(
+    res23CrossBleed.status === 201 && data23CrossBleed.contribution?.moneyAmount === 0,
+    'Cross-type negative money in grain donation is zeroed out and sanitized',
+    `Expected moneyAmount === 0, got ${data23CrossBleed.contribution?.moneyAmount}`
+  );
+
+  // ----------------------------------------------------
+  // TEST 24: Unauthenticated Admin Seed Endpoint -> DENIED (HTTP 403)
+  // ----------------------------------------------------
+  console.log('Test 24: Unauthenticated Admin Seed Endpoint');
+  const req24Seed = createMockRequest('http://localhost:3000/api/admin/seed', 'POST', {
+    userUid: undefined,
+    body: { applyDemoCampaignConfig: true },
+  });
+  const res24Seed = await adminSeedPostRoute(req24Seed);
+  assert(
+    res24Seed.status === 403,
+    'Unauthenticated admin seed invocation is REJECTED (HTTP 403)',
+    `Expected 403, got ${res24Seed.status}`
+  );
+
+  // ----------------------------------------------------
+  // TEST 25: CSV Formula Injection (CWE-1236) Neutralization
+  // ----------------------------------------------------
+  console.log('Test 25: CSV Formula Injection (CWE-1236) Neutralization');
+  const req25 = createMockRequest('http://localhost:3000/api/contributions', 'POST', {
+    userUid: 'cr-2-bcom-afa',
+    body: {
+      studentId: 'std-seed-2-bcom-afa-1',
+      classId: '2-bcom-afa',
+      type: 'grain',
+      grainType: 'Rice',
+      grainQuantityKg: 5,
+      notes: '=cmd|\'/C calc\'!A0',
+    },
+  });
+  await contributionsPostRoute(req25);
+
+  const req25Export = createMockRequest('http://localhost:3000/api/reports/export?type=contribution&classId=2-bcom-afa', 'GET', {
+    userUid: 'cr-2-bcom-afa',
+  });
+  const res25Export = await reportsExportGetRoute(req25Export);
+  const csvText = await res25Export.text();
+  assert(
+    csvText.includes(`"'=cmd|'/C calc'!A0"`),
+    'Spreadsheet formula trigger prefix is neutralized with leading quote in CSV export',
+    'Expected formula character to be escaped with single quote'
   );
 
   // ----------------------------------------------------

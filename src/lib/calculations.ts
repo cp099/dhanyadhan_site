@@ -14,6 +14,10 @@ export interface ContributionInput {
   grainQuantityKg?: number | null;
 }
 
+const MAX_MONEY_AMOUNT = 1_000_000; // Max ₹10 Lakhs per transaction
+const MAX_GRAIN_KG = 50_000;       // Max 50 Tons per transaction
+const VALID_TYPES = new Set(['money', 'grain', 'both']);
+
 /**
  * Calculates official equivalent KG using active campaign configuration.
  * Throws an error if campaign configuration is incomplete or values are invalid.
@@ -22,6 +26,10 @@ export function calculateEquivalentKg(
   input: ContributionInput,
   config: CampaignConfig
 ): CalculationResult {
+  if (!VALID_TYPES.has(input.type)) {
+    throw new Error(`Invalid contribution type: "${input.type}". Must be 'money', 'grain', or 'both'.`);
+  }
+
   let equivalentKg = 0;
   let moneyToKgRateUsed = 0;
   let grainConversionFactorUsed = 0;
@@ -30,11 +38,14 @@ export function calculateEquivalentKg(
   const hasGrain = input.type === 'grain' || input.type === 'both';
 
   if (hasMoney) {
-    const money = input.moneyAmount || 0;
-    if (money <= 0) {
-      throw new Error('Money amount must be greater than 0.');
+    const money = Number(input.moneyAmount);
+    if (!Number.isFinite(money) || money <= 0) {
+      throw new Error('Money amount must be a positive finite number greater than 0.');
     }
-    if (!config.moneyToKgRate || config.moneyToKgRate <= 0) {
+    if (money > MAX_MONEY_AMOUNT) {
+      throw new Error(`Money amount exceeds maximum allowed limit of ₹${MAX_MONEY_AMOUNT.toLocaleString()}.`);
+    }
+    if (!config.moneyToKgRate || config.moneyToKgRate <= 0 || !Number.isFinite(config.moneyToKgRate)) {
       throw new Error('Campaign Money-to-KG conversion rate is not yet configured by the SDG Cell.');
     }
     moneyToKgRateUsed = config.moneyToKgRate;
@@ -42,10 +53,14 @@ export function calculateEquivalentKg(
   }
 
   if (hasGrain) {
-    const qty = input.grainQuantityKg || 0;
-    if (qty <= 0) {
-      throw new Error('Grain quantity must be greater than 0 KG.');
+    const qty = Number(input.grainQuantityKg);
+    if (!Number.isFinite(qty) || qty <= 0) {
+      throw new Error('Grain quantity must be a positive finite number greater than 0 KG.');
     }
+    if (qty > MAX_GRAIN_KG) {
+      throw new Error(`Grain quantity exceeds maximum allowed limit of ${MAX_GRAIN_KG} KG.`);
+    }
+
     const requestedType = input.grainType || 'Rice';
     let grainRule = config.acceptedGrains.find(
       (g) => g.id.toLowerCase() === requestedType.toLowerCase() || g.name.toLowerCase() === requestedType.toLowerCase()
@@ -61,8 +76,8 @@ export function calculateEquivalentKg(
     equivalentKg += qty * grainRule.conversionFactor;
   }
 
-  // Round cleanly to 2 decimal places to avoid IEEE 754 precision issues
-  const roundedEquivalentKg = Math.round(equivalentKg * 100) / 100;
+  // Safe 2-decimal rounding with Number.EPSILON to avoid IEEE 754 precision issues
+  const roundedEquivalentKg = Math.round((equivalentKg + Number.EPSILON) * 100) / 100;
 
   return {
     equivalentKg: roundedEquivalentKg,

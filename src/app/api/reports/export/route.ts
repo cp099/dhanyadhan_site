@@ -14,8 +14,15 @@ import {
 
 function escapeCsv(value: unknown): string {
   if (value === null || value === undefined) return '""';
-  const str = String(value).replace(/"/g, '""');
-  return `"${str}"`;
+  let str = String(value);
+
+  // Defend against CSV Formula Injection (CWE-1236)
+  const trimmed = str.trimStart();
+  if (trimmed.length > 0 && ['=', '+', '-', '@', '\t', '\r'].includes(trimmed[0])) {
+    str = `'${str}`;
+  }
+
+  return `"${str.replace(/"/g, '""')}"`;
 }
 
 export async function GET(req: NextRequest) {
@@ -114,7 +121,7 @@ export async function GET(req: NextRequest) {
     ]);
 
     csvContent = [
-      `"CLASS REPORT: ${classDoc.name} (${classDoc.year} - ${classDoc.program})"`,
+      escapeCsv(`CLASS REPORT: ${classDoc.name} (${classDoc.year} - ${classDoc.program})`),
       `"Class Rank",${escapeCsv(classDoc.currentRank ?? 'Unranked')}`,
       `"Total Equivalent Impact KG",${escapeCsv(classDoc.totalEquivalentKg)}`,
       `"Unique Contributors",${escapeCsv(classDoc.contributorCount)}`,
@@ -188,7 +195,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Forbidden.' }, { status: 403 });
     }
 
-    filename = `dhanyadhan_student_${student.name.replace(/\s+/g, '_')}_${Date.now()}.csv`;
+    const safeStudentName = student.name.replace(/[^a-zA-Z0-9_-]/g, '_').substring(0, 50);
+    filename = `dhanyadhan_student_${safeStudentName}_${Date.now()}.csv`;
 
     const headers = [
       'Date',
@@ -213,7 +221,7 @@ export async function GET(req: NextRequest) {
     ]);
 
     csvContent = [
-      `"STUDENT PROFILE: ${student.name}"`,
+      escapeCsv(`STUDENT PROFILE: ${student.name}`),
       `"Class ID",${escapeCsv(student.classId)}`,
       `"Roll No",${escapeCsv(student.rollNo || '')}`,
       `"Total Equivalent Impact KG",${escapeCsv(student.totalEquivalentKg)}`,
