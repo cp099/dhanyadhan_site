@@ -4,6 +4,7 @@ import {
   CampaignConfig,
   ClassDoc,
   StudentDoc,
+  FacultyDoc,
   ContributionDoc,
   PublicCampaignSummary,
   PublicLeaderboardItem,
@@ -22,6 +23,7 @@ interface DatabaseSchema {
   campaign: Record<string, CampaignConfig>;
   classes: Record<string, ClassDoc>;
   students: Record<string, StudentDoc>;
+  faculty: Record<string, FacultyDoc>;
   contributions: Record<string, ContributionDoc>;
   publicCampaign: Record<string, PublicCampaignSummary>;
   publicLeaderboard: Record<string, { items: PublicLeaderboardItem[]; updatedAt: string }>;
@@ -89,6 +91,8 @@ function initializeEmptyDatabase(): DatabaseSchema {
     updatedAt: new Date().toISOString(),
   };
 
+  const faculty = getInitialFacultyRoster();
+
   // Pre-seed default administrative accounts for development/testing
   const users: Record<string, UserProfile> = {
     'sdg-admin-1': {
@@ -96,6 +100,15 @@ function initializeEmptyDatabase(): DatabaseSchema {
       email: 'sdgadmin@dhanyadhan.edu',
       name: 'SDG Cell Director',
       role: 'sdg_admin',
+      classId: null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    'faculty-coord-1': {
+      uid: 'faculty-coord-1',
+      email: 'faculty@dhanyadhan.edu',
+      name: 'Dr. Sunita Raman (Faculty Coordinator)',
+      role: 'faculty',
       classId: null,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -135,6 +148,7 @@ function initializeEmptyDatabase(): DatabaseSchema {
     },
     classes,
     students: {},
+    faculty,
     contributions: {},
     publicCampaign: {
       summary: publicCampaign,
@@ -151,6 +165,92 @@ function initializeEmptyDatabase(): DatabaseSchema {
   };
 }
 
+function getInitialFacultyRoster(): Record<string, FacultyDoc> {
+  const now = new Date().toISOString();
+  return {
+    'fac-101': {
+      id: 'fac-101',
+      name: 'Dr. Sunita Raman',
+      employeeId: 'FAC-COM-001',
+      designation: 'Professor & Head of Department',
+      department: 'Department of Commerce',
+      email: 'faculty@dhanyadhan.edu',
+      phone: '+91 98450 11223',
+      active: true,
+      totalMoney: 0,
+      totalGrainKg: 0,
+      totalEquivalentKg: 0,
+      contributionCount: 0,
+      createdAt: now,
+      updatedAt: now,
+    },
+    'fac-102': {
+      id: 'fac-102',
+      name: 'Dr. Rajesh K. Sharma',
+      employeeId: 'FAC-COM-004',
+      designation: 'Associate Professor (Accounting & Finance)',
+      department: 'Department of Commerce',
+      email: 'r.sharma@dhanyadhan.edu',
+      phone: '+91 98450 22334',
+      active: true,
+      totalMoney: 0,
+      totalGrainKg: 0,
+      totalEquivalentKg: 0,
+      contributionCount: 0,
+      createdAt: now,
+      updatedAt: now,
+    },
+    'fac-103': {
+      id: 'fac-103',
+      name: 'Dr. Meenakshi Sundaram',
+      employeeId: 'FAC-COM-008',
+      designation: 'Associate Professor (Taxation & Law)',
+      department: 'Department of Commerce',
+      email: 'm.sundaram@dhanyadhan.edu',
+      phone: '+91 98450 33445',
+      active: true,
+      totalMoney: 0,
+      totalGrainKg: 0,
+      totalEquivalentKg: 0,
+      contributionCount: 0,
+      createdAt: now,
+      updatedAt: now,
+    },
+    'fac-104': {
+      id: 'fac-104',
+      name: 'Prof. Arvind Kulkarni',
+      employeeId: 'FAC-COM-015',
+      designation: 'Assistant Professor (Banking & Insurance)',
+      department: 'Department of Commerce',
+      email: 'a.kulkarni@dhanyadhan.edu',
+      phone: '+91 98450 44556',
+      active: true,
+      totalMoney: 0,
+      totalGrainKg: 0,
+      totalEquivalentKg: 0,
+      contributionCount: 0,
+      createdAt: now,
+      updatedAt: now,
+    },
+    'fac-105': {
+      id: 'fac-105',
+      name: 'Dr. Shalini Deshmukh',
+      employeeId: 'FAC-COM-019',
+      designation: 'Assistant Professor (Business Analytics)',
+      department: 'Department of Commerce',
+      email: 's.deshmukh@dhanyadhan.edu',
+      phone: '+91 98450 55667',
+      active: true,
+      totalMoney: 0,
+      totalGrainKg: 0,
+      totalEquivalentKg: 0,
+      contributionCount: 0,
+      createdAt: now,
+      updatedAt: now,
+    },
+  };
+}
+
 function getDatabase(): DatabaseSchema {
   if (!fs.existsSync(DATA_DIR)) {
     fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -164,7 +264,30 @@ function getDatabase(): DatabaseSchema {
 
   try {
     const raw = fs.readFileSync(DB_FILE, 'utf-8');
-    return JSON.parse(raw) as DatabaseSchema;
+    const parsed = JSON.parse(raw) as DatabaseSchema;
+    let mutated = false;
+
+    if (!parsed.faculty) {
+      parsed.faculty = getInitialFacultyRoster();
+      mutated = true;
+    }
+    if (!parsed.users['faculty-coord-1']) {
+      parsed.users['faculty-coord-1'] = {
+        uid: 'faculty-coord-1',
+        email: 'faculty@dhanyadhan.edu',
+        name: 'Dr. Sunita Raman (Faculty Coordinator)',
+        role: 'faculty',
+        classId: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      mutated = true;
+    }
+
+    if (mutated) {
+      saveDatabase(parsed);
+    }
+    return parsed;
   } catch (err) {
     console.error('Error reading database file, re-initializing:', err);
     const initial = initializeEmptyDatabase();
@@ -429,20 +552,34 @@ function updateCascadingAggregates(db: DatabaseSchema, targetClassId: string): v
     updatedAt: new Date().toISOString(),
   };
 
-  // 5. Update Department Aggregate & publicCampaign/summary
+  // 5. Update Department Aggregate & publicCampaign/summary (Classes + Faculty)
+  updateDepartmentAggregates(db);
+}
+
+function updateDepartmentAggregates(db: DatabaseSchema): void {
   const campaign = db.campaign.default || INITIAL_UNCONFIGURED_CAMPAIGN;
   const allClassList = Object.values(db.classes);
-  const deptImpactKg = Math.round(
-    allClassList.reduce((acc, c) => acc + (c.totalEquivalentKg || 0), 0) * 100
-  ) / 100;
-  const deptGrainKg = Math.round(
-    allClassList.reduce((acc, c) => acc + (c.totalGrainKg || 0), 0) * 100
-  ) / 100;
-  const deptMoney = Math.round(
-    allClassList.reduce((acc, c) => acc + (c.totalMoney || 0), 0) * 100
-  ) / 100;
-  const deptContributors = allClassList.reduce((acc, c) => acc + (c.contributorCount || 0), 0);
-  const deptContributions = allClassList.reduce((acc, c) => acc + (c.contributionCount || 0), 0);
+  const allFacultyList = Object.values(db.faculty || {}).filter((f) => f.active);
+
+  const classesImpactKg = allClassList.reduce((acc, c) => acc + (c.totalEquivalentKg || 0), 0);
+  const facultyImpactKg = allFacultyList.reduce((acc, f) => acc + (f.totalEquivalentKg || 0), 0);
+  const deptImpactKg = Math.round((classesImpactKg + facultyImpactKg) * 100) / 100;
+
+  const classesGrainKg = allClassList.reduce((acc, c) => acc + (c.totalGrainKg || 0), 0);
+  const facultyGrainKg = allFacultyList.reduce((acc, f) => acc + (f.totalGrainKg || 0), 0);
+  const deptGrainKg = Math.round((classesGrainKg + facultyGrainKg) * 100) / 100;
+
+  const classesMoney = allClassList.reduce((acc, c) => acc + (c.totalMoney || 0), 0);
+  const facultyMoney = allFacultyList.reduce((acc, f) => acc + (f.totalMoney || 0), 0);
+  const deptMoney = Math.round((classesMoney + facultyMoney) * 100) / 100;
+
+  const classesContributors = allClassList.reduce((acc, c) => acc + (c.contributorCount || 0), 0);
+  const facultyContributors = allFacultyList.filter((f) => (f.contributionCount || 0) > 0).length;
+  const deptContributors = classesContributors + facultyContributors;
+
+  const classesContributions = allClassList.reduce((acc, c) => acc + (c.contributionCount || 0), 0);
+  const facultyContributions = allFacultyList.reduce((acc, f) => acc + (f.contributionCount || 0), 0);
+  const deptContributions = classesContributions + facultyContributions;
 
   const progressPercentage =
     campaign.targetKg && campaign.targetKg > 0
@@ -455,6 +592,7 @@ function updateCascadingAggregates(db: DatabaseSchema, targetClassId: string): v
     secondaryTagline: campaign.secondaryTagline,
     targetKg: campaign.targetKg,
     totalImpactKg: deptImpactKg,
+    facultyTotalEquivalentKg: facultyImpactKg,
     totalGrainKg: campaign.showTotalGrainKgPublicly ? deptGrainKg : null,
     totalMoney: campaign.showTotalMoneyPublicly ? deptMoney : null,
     contributorCount: deptContributors,
@@ -579,6 +717,10 @@ export async function editContribution(
     throw new Error('Contribution record not found.');
   }
 
+  if (!existing.studentId || !existing.classId) {
+    throw new Error('Associated student or class not found.');
+  }
+
   const student = db.students[existing.studentId];
   if (!student) {
     throw new Error('Associated student not found.');
@@ -653,34 +795,56 @@ export async function deleteContribution(
     throw new Error('Contribution record not found.');
   }
 
-  const student = db.students[existing.studentId];
-  const classId = existing.classId;
+  const isFaculty = existing.contributorType === 'faculty' || !!existing.facultyId;
 
-  if (student) {
-    student.totalMoney = Math.max(0, Math.round(((student.totalMoney || 0) - existing.moneyAmount) * 100) / 100);
-    student.totalGrainKg = Math.max(0, Math.round(((student.totalGrainKg || 0) - (existing.grainQuantityKg || 0)) * 100) / 100);
-    student.totalEquivalentKg = Math.max(0, Math.round(((student.totalEquivalentKg || 0) - existing.equivalentKg) * 100) / 100);
-    student.contributionCount = Math.max(0, (student.contributionCount || 0) - 1);
-    if (student.contributionCount === 0) {
-      student.firstContributedAt = undefined;
+  if (isFaculty) {
+    const faculty = existing.facultyId ? db.faculty?.[existing.facultyId] : null;
+    if (faculty) {
+      faculty.totalMoney = Math.max(0, Math.round(((faculty.totalMoney || 0) - existing.moneyAmount) * 100) / 100);
+      faculty.totalGrainKg = Math.max(0, Math.round(((faculty.totalGrainKg || 0) - (existing.grainQuantityKg || 0)) * 100) / 100);
+      faculty.totalEquivalentKg = Math.max(0, Math.round(((faculty.totalEquivalentKg || 0) - existing.equivalentKg) * 100) / 100);
+      faculty.contributionCount = Math.max(0, (faculty.contributionCount || 0) - 1);
+      if (faculty.contributionCount === 0) {
+        faculty.firstContributedAt = undefined;
+      }
+      faculty.updatedAt = new Date().toISOString();
     }
-    student.updatedAt = new Date().toISOString();
+    delete db.contributions[contributionId];
+    updateDepartmentAggregates(db);
+  } else {
+    const student = existing.studentId ? db.students[existing.studentId] : null;
+    const classId = existing.classId;
+
+    if (student) {
+      student.totalMoney = Math.max(0, Math.round(((student.totalMoney || 0) - existing.moneyAmount) * 100) / 100);
+      student.totalGrainKg = Math.max(0, Math.round(((student.totalGrainKg || 0) - (existing.grainQuantityKg || 0)) * 100) / 100);
+      student.totalEquivalentKg = Math.max(0, Math.round(((student.totalEquivalentKg || 0) - existing.equivalentKg) * 100) / 100);
+      student.contributionCount = Math.max(0, (student.contributionCount || 0) - 1);
+      if (student.contributionCount === 0) {
+        student.firstContributedAt = undefined;
+      }
+      student.updatedAt = new Date().toISOString();
+    }
+
+    delete db.contributions[contributionId];
+
+    // Update cascading aggregates
+    if (classId && classId !== 'faculty') {
+      updateCascadingAggregates(db, classId);
+    } else {
+      updateDepartmentAggregates(db);
+    }
   }
-
-  delete db.contributions[contributionId];
-
-  // Update cascading aggregates
-  updateCascadingAggregates(db, classId);
 
   // Audit log
   const logId = `log-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
   db.auditLogs[logId] = {
     id: logId,
-    action: 'CONTRIBUTION_DELETED',
+    action: isFaculty ? 'FACULTY_CONTRIBUTION_DELETED' : 'CONTRIBUTION_DELETED',
     adminUserId: actor.uid,
     adminUserEmail: actor.email,
-    classId,
-    studentId: student?.id,
+    classId: existing.classId || 'faculty',
+    studentId: existing.studentId,
     contributionId,
     previousValue: existing,
     timestamp: new Date().toISOString(),
@@ -835,6 +999,308 @@ export async function getAuditLogs(): Promise<AuditLogDoc[]> {
   );
 }
 
+// ----------------- FACULTY ROSTER & CONTRIBUTIONS -----------------
+
+export async function getAllFaculty(): Promise<FacultyDoc[]> {
+  const db = getDatabase();
+  return Object.values(db.faculty || {}).sort((a, b) => a.name.localeCompare(b.name));
+}
+
+export async function getFaculty(id: string): Promise<FacultyDoc | null> {
+  const db = getDatabase();
+  return db.faculty?.[id] || null;
+}
+
+export async function addFaculty(params: {
+  name: string;
+  designation: string;
+  employeeId?: string;
+  department?: string;
+  email?: string;
+  phone?: string;
+  actor: { uid: string; email: string };
+}): Promise<FacultyDoc> {
+  const db = getDatabase();
+  const id = `fac-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+  const now = new Date().toISOString();
+
+  const newFaculty: FacultyDoc = {
+    id,
+    name: params.name.trim(),
+    employeeId: params.employeeId?.trim() || undefined,
+    designation: params.designation.trim(),
+    department: params.department?.trim() || 'Department of Commerce',
+    email: params.email?.trim().toLowerCase() || undefined,
+    phone: params.phone?.trim() || undefined,
+    active: true,
+    totalMoney: 0,
+    totalGrainKg: 0,
+    totalEquivalentKg: 0,
+    contributionCount: 0,
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  if (!db.faculty) db.faculty = {};
+  db.faculty[id] = newFaculty;
+
+  const logId = `log-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+  db.auditLogs[logId] = {
+    id: logId,
+    action: 'FACULTY_CREATED',
+    adminUserId: params.actor.uid,
+    adminUserEmail: params.actor.email,
+    facultyId: id,
+    newValue: newFaculty,
+    timestamp: now,
+  };
+
+  saveDatabase(db);
+  return newFaculty;
+}
+
+export async function editFaculty(
+  id: string,
+  params: {
+    name?: string;
+    designation?: string;
+    employeeId?: string;
+    department?: string;
+    email?: string;
+    phone?: string;
+    active?: boolean;
+    actor: { uid: string; email: string };
+  }
+): Promise<FacultyDoc> {
+  const db = getDatabase();
+  const existing = db.faculty?.[id];
+  if (!existing) {
+    throw new Error('Faculty member not found.');
+  }
+
+  if (params.name !== undefined) existing.name = params.name.trim();
+  if (params.designation !== undefined) existing.designation = params.designation.trim();
+  if (params.employeeId !== undefined) existing.employeeId = params.employeeId?.trim() || undefined;
+  if (params.department !== undefined) existing.department = params.department.trim();
+  if (params.email !== undefined) existing.email = params.email?.trim().toLowerCase() || undefined;
+  if (params.phone !== undefined) existing.phone = params.phone?.trim() || undefined;
+  if (params.active !== undefined) existing.active = params.active;
+  existing.updatedAt = new Date().toISOString();
+
+  updateDepartmentAggregates(db);
+
+  const logId = `log-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+  db.auditLogs[logId] = {
+    id: logId,
+    action: 'FACULTY_UPDATED',
+    adminUserId: params.actor.uid,
+    adminUserEmail: params.actor.email,
+    facultyId: id,
+    newValue: existing,
+    timestamp: new Date().toISOString(),
+  };
+
+  saveDatabase(db);
+  return existing;
+}
+
+export async function deleteFaculty(
+  id: string,
+  actor: { uid: string; email: string }
+): Promise<void> {
+  const db = getDatabase();
+  const existing = db.faculty?.[id];
+  if (!existing) {
+    throw new Error('Faculty member not found.');
+  }
+
+  // Soft delete / deactivate
+  existing.active = false;
+  existing.updatedAt = new Date().toISOString();
+
+  updateDepartmentAggregates(db);
+
+  const logId = `log-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+  db.auditLogs[logId] = {
+    id: logId,
+    action: 'FACULTY_DEACTIVATED',
+    adminUserId: actor.uid,
+    adminUserEmail: actor.email,
+    facultyId: id,
+    newValue: existing,
+    timestamp: new Date().toISOString(),
+  };
+
+  saveDatabase(db);
+}
+
+export async function recordFacultyContribution(params: {
+  facultyId: string;
+  type: ContributionType;
+  moneyAmount?: number;
+  grainType?: string | null;
+  grainQuantityKg?: number | null;
+  paymentProofUrl?: string | null;
+  notes?: string;
+  actor: { uid: string; email: string; name: string };
+}): Promise<ContributionDoc> {
+  const db = getDatabase();
+  const campaign = db.campaign.default || INITIAL_UNCONFIGURED_CAMPAIGN;
+
+  const faculty = db.faculty?.[params.facultyId];
+  if (!faculty || !faculty.active) {
+    throw new Error('Selected faculty member does not exist or is inactive.');
+  }
+
+  const calc = calculateEquivalentKg(
+    {
+      type: params.type,
+      moneyAmount: params.moneyAmount,
+      grainType: params.grainType,
+      grainQuantityKg: params.grainQuantityKg,
+    },
+    campaign
+  );
+
+  const contributionId = `contr-fac-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+  const now = new Date().toISOString();
+
+  const newContribution: ContributionDoc = {
+    id: contributionId,
+    contributorType: 'faculty',
+    facultyId: faculty.id,
+    facultyName: faculty.name,
+    classId: 'faculty',
+    type: params.type,
+    moneyAmount: params.moneyAmount || 0,
+    grainType: params.grainType || null,
+    grainQuantityKg: params.grainQuantityKg || 0,
+    equivalentKg: calc.equivalentKg,
+    conversionVersion: calc.conversionVersion,
+    moneyToKgRateUsed: calc.moneyToKgRateUsed,
+    grainConversionFactorUsed: calc.grainConversionFactorUsed,
+    recordedBy: params.actor.email,
+    recordedByName: params.actor.name,
+    paymentProofUrl: params.paymentProofUrl || null,
+    notes: params.notes || '',
+    createdAt: now,
+    updatedAt: now,
+  };
+
+  db.contributions[contributionId] = newContribution;
+
+  faculty.totalMoney = Math.round(((faculty.totalMoney || 0) + newContribution.moneyAmount) * 100) / 100;
+  faculty.totalGrainKg = Math.round(((faculty.totalGrainKg || 0) + (newContribution.grainQuantityKg || 0)) * 100) / 100;
+  faculty.totalEquivalentKg = Math.round(((faculty.totalEquivalentKg || 0) + newContribution.equivalentKg) * 100) / 100;
+  faculty.contributionCount = (faculty.contributionCount || 0) + 1;
+  if (!faculty.firstContributedAt) {
+    faculty.firstContributedAt = now;
+  }
+  faculty.updatedAt = now;
+
+  updateDepartmentAggregates(db);
+
+  const logId = `log-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+  db.auditLogs[logId] = {
+    id: logId,
+    action: 'FACULTY_CONTRIBUTION_CREATED',
+    adminUserId: params.actor.uid,
+    adminUserEmail: params.actor.email,
+    facultyId: faculty.id,
+    contributionId,
+    newValue: newContribution,
+    timestamp: now,
+  };
+
+  saveDatabase(db);
+  return newContribution;
+}
+
+export async function getFacultyContributions(): Promise<ContributionDoc[]> {
+  const db = getDatabase();
+  return Object.values(db.contributions)
+    .filter((c) => c.contributorType === 'faculty' || c.classId === 'faculty' || !!c.facultyId)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+}
+
+export async function editFacultyContribution(
+  contributionId: string,
+  params: {
+    type: ContributionType;
+    moneyAmount?: number;
+    grainType?: string | null;
+    grainQuantityKg?: number | null;
+    paymentProofUrl?: string | null;
+    notes?: string;
+    actor: { uid: string; email: string; name: string };
+  }
+): Promise<ContributionDoc> {
+  const db = getDatabase();
+  const campaign = db.campaign.default || INITIAL_UNCONFIGURED_CAMPAIGN;
+  const existing = db.contributions[contributionId];
+
+  if (!existing || (!existing.facultyId && existing.contributorType !== 'faculty')) {
+    throw new Error('Faculty contribution record not found.');
+  }
+
+  const faculty = existing.facultyId ? db.faculty?.[existing.facultyId] : null;
+  if (!faculty) {
+    throw new Error('Associated faculty member not found.');
+  }
+
+  const calc = calculateEquivalentKg(
+    {
+      type: params.type,
+      moneyAmount: params.moneyAmount,
+      grainType: params.grainType,
+      grainQuantityKg: params.grainQuantityKg,
+    },
+    campaign
+  );
+
+  const deltaMoney = (params.moneyAmount || 0) - existing.moneyAmount;
+  const deltaGrain = (params.grainQuantityKg || 0) - (existing.grainQuantityKg || 0);
+  const deltaEq = calc.equivalentKg - existing.equivalentKg;
+
+  const previousSnapshot = { ...existing };
+  const now = new Date().toISOString();
+
+  existing.type = params.type;
+  existing.moneyAmount = params.moneyAmount || 0;
+  existing.grainType = params.grainType || null;
+  existing.grainQuantityKg = params.grainQuantityKg || 0;
+  existing.equivalentKg = calc.equivalentKg;
+  existing.conversionVersion = calc.conversionVersion;
+  existing.moneyToKgRateUsed = calc.moneyToKgRateUsed;
+  existing.grainConversionFactorUsed = calc.grainConversionFactorUsed;
+  if (params.paymentProofUrl !== undefined) existing.paymentProofUrl = params.paymentProofUrl;
+  if (params.notes !== undefined) existing.notes = params.notes;
+  existing.updatedAt = now;
+
+  faculty.totalMoney = Math.max(0, Math.round(((faculty.totalMoney || 0) + deltaMoney) * 100) / 100);
+  faculty.totalGrainKg = Math.max(0, Math.round(((faculty.totalGrainKg || 0) + deltaGrain) * 100) / 100);
+  faculty.totalEquivalentKg = Math.max(0, Math.round(((faculty.totalEquivalentKg || 0) + deltaEq) * 100) / 100);
+  faculty.updatedAt = now;
+
+  updateDepartmentAggregates(db);
+
+  const logId = `log-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+  db.auditLogs[logId] = {
+    id: logId,
+    action: 'FACULTY_CONTRIBUTION_EDITED',
+    adminUserId: params.actor.uid,
+    adminUserEmail: params.actor.email,
+    facultyId: faculty.id,
+    contributionId,
+    previousValue: previousSnapshot,
+    newValue: existing,
+    timestamp: now,
+  };
+
+  saveDatabase(db);
+  return existing;
+}
+
 // ----------------- SEED UTILITY FOR DEV / TESTING -----------------
 
 export async function seedDevelopmentData(options?: {
@@ -881,6 +1347,12 @@ export async function seedDevelopmentData(options?: {
     updateCascadingAggregates(db, c.id);
   });
 
+  if (!db.faculty || Object.keys(db.faculty).length === 0) {
+    db.faculty = getInitialFacultyRoster();
+  }
+
+  updateDepartmentAggregates(db);
+
   saveDatabase(db);
-  return { success: true, message: `Seeded ${studentsCount} students for all 17 classes.` };
+  return { success: true, message: `Seeded ${studentsCount} students for all 17 classes and department faculty roster.` };
 }

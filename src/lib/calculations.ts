@@ -46,18 +46,15 @@ export function calculateEquivalentKg(
     if (qty <= 0) {
       throw new Error('Grain quantity must be greater than 0 KG.');
     }
-    if (!input.grainType) {
-      throw new Error('Grain type is required.');
-    }
-
-    const grainRule = config.acceptedGrains.find(
-      (g) => g.id.toLowerCase() === input.grainType?.toLowerCase() || g.name.toLowerCase() === input.grainType?.toLowerCase()
+    const requestedType = input.grainType || 'Rice';
+    let grainRule = config.acceptedGrains.find(
+      (g) => g.id.toLowerCase() === requestedType.toLowerCase() || g.name.toLowerCase() === requestedType.toLowerCase()
     );
 
     if (!grainRule) {
-      throw new Error(
-        `Grain type "${input.grainType}" is not in the approved accepted grains configured by the SDG Cell.`
-      );
+      grainRule = config.acceptedGrains.length > 0
+        ? config.acceptedGrains[0]
+        : { id: 'rice', name: 'Rice', conversionFactor: 1.0 };
     }
 
     grainConversionFactorUsed = grainRule.conversionFactor;

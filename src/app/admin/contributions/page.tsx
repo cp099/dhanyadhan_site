@@ -69,9 +69,10 @@ export default function AdminContributionsPage() {
   }
 
   const filtered = contributions.filter((c) => {
+    const contributor = c.studentName || c.facultyName || '';
     const matchesSearch =
-      c.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      c.recordedBy.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      contributor.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (c.recordedBy && c.recordedBy.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (c.notes && c.notes.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesClass = classFilter === 'all' || c.classId === classFilter;
     return matchesSearch && matchesClass;
@@ -167,7 +168,7 @@ export default function AdminContributionsPage() {
                     {formatDate(c.createdAt)}
                   </td>
                   <td className="py-3 px-4 text-xs font-bold text-[#155e42]">{c.classId}</td>
-                  <td className="py-3 px-4 font-bold text-[#0a241b]">{c.studentName}</td>
+                  <td className="py-3 px-4 font-bold text-[#0a241b]">{c.studentName || c.facultyName || 'Contributor'}</td>
                   <td className="py-3 px-4">
                     <span className="inline-block px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-gray-100 text-gray-700">
                       {c.type}
@@ -268,14 +269,7 @@ export default function AdminContributionsPage() {
         <PaymentProofModal
           isOpen={!!proofModalTarget}
           onClose={() => setProofModalTarget(null)}
-          proofUrl={proofModalTarget.paymentProofUrl}
-          studentName={proofModalTarget.studentName}
-          classId={proofModalTarget.classId}
-          moneyAmount={proofModalTarget.moneyAmount}
-          equivalentKg={proofModalTarget.equivalentKg}
-          createdAt={proofModalTarget.createdAt}
-          recordedBy={proofModalTarget.recordedByName || proofModalTarget.recordedBy}
-          notes={proofModalTarget.notes}
+          contribution={proofModalTarget}
         />
       )}
     </div>

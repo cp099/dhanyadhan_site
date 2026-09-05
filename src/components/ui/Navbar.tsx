@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Sprout, Menu, X, Shield, Users, LogOut, User } from 'lucide-react';
+import { Sprout, Menu, X, Shield, Users, GraduationCap, LogOut, User } from 'lucide-react';
 import { UserProfile } from '@/lib/types';
 
 export function Navbar() {
@@ -47,6 +47,7 @@ export function Navbar() {
 
   const isCR = currentUser?.role === 'class_admin';
   const isAdmin = currentUser?.role === 'sdg_admin';
+  const isFaculty = currentUser?.role === 'faculty';
 
   return (
     <header className="sticky top-0 z-50 bg-[#0a241b]/95 backdrop-blur-md border-b border-[#155e42]/50 text-white">
@@ -94,15 +95,29 @@ export function Navbar() {
             {!loadingUser && currentUser ? (
               <div className="flex items-center space-x-2">
                 <Link
-                  href={isAdmin ? '/admin' : '/cr'}
+                  href={isAdmin ? '/admin' : isFaculty ? '/faculty' : '/cr'}
                   className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all ${
                     isAdmin
                       ? 'bg-amber-400 text-amber-950 border-amber-400 hover:bg-amber-300'
+                      : isFaculty
+                      ? 'bg-blue-400 text-blue-950 border-blue-400 hover:bg-blue-300'
                       : 'bg-[#22c55e] text-[#0a241b] border-[#22c55e] hover:bg-[#4ade80]'
                   }`}
                 >
-                  {isAdmin ? <Shield className="w-3.5 h-3.5" /> : <Users className="w-3.5 h-3.5" />}
-                  <span>{isAdmin ? 'SDG Admin Console' : `CR Console (${currentUser.classId})`}</span>
+                  {isAdmin ? (
+                    <Shield className="w-3.5 h-3.5" />
+                  ) : isFaculty ? (
+                    <GraduationCap className="w-3.5 h-3.5" />
+                  ) : (
+                    <Users className="w-3.5 h-3.5" />
+                  )}
+                  <span>
+                    {isAdmin
+                      ? 'SDG Admin Console'
+                      : isFaculty
+                      ? 'Faculty Console'
+                      : `CR Console (${currentUser.classId})`}
+                  </span>
                 </Link>
 
                 <button
@@ -159,12 +174,30 @@ export function Navbar() {
             {currentUser ? (
               <div className="space-y-2">
                 <Link
-                  href={isAdmin ? '/admin' : '/cr'}
+                  href={isAdmin ? '/admin' : isFaculty ? '/faculty' : '/cr'}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-[#22c55e] text-[#0a241b] font-bold text-sm"
+                  className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm ${
+                    isAdmin
+                      ? 'bg-amber-400 text-amber-950'
+                      : isFaculty
+                      ? 'bg-blue-400 text-blue-950'
+                      : 'bg-[#22c55e] text-[#0a241b]'
+                  }`}
                 >
-                  {isAdmin ? <Shield className="w-4 h-4" /> : <Users className="w-4 h-4" />}
-                  <span>{isAdmin ? 'SDG Admin Console' : `CR Console (${currentUser.classId})`}</span>
+                  {isAdmin ? (
+                    <Shield className="w-4 h-4" />
+                  ) : isFaculty ? (
+                    <GraduationCap className="w-4 h-4" />
+                  ) : (
+                    <Users className="w-4 h-4" />
+                  )}
+                  <span>
+                    {isAdmin
+                      ? 'SDG Admin Console'
+                      : isFaculty
+                      ? 'Faculty Console'
+                      : `CR Console (${currentUser.classId})`}
+                  </span>
                 </Link>
                 <button
                   type="button"

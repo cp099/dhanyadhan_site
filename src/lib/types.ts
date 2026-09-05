@@ -1,4 +1,4 @@
-export type Role = 'class_admin' | 'sdg_admin';
+export type Role = 'class_admin' | 'sdg_admin' | 'faculty';
 
 export interface UserProfile {
   uid: string;
@@ -47,6 +47,24 @@ export interface StudentDoc {
   updatedAt: string;
 }
 
+export interface FacultyDoc {
+  id: string;
+  name: string;
+  employeeId?: string;
+  designation: string; // e.g. 'Professor & Head', 'Associate Professor', 'Assistant Professor'
+  department: string; // e.g. 'Department of Commerce'
+  email?: string;
+  phone?: string;
+  active: boolean;
+  totalMoney: number;
+  totalGrainKg: number;
+  totalEquivalentKg: number;
+  contributionCount: number;
+  firstContributedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export type ContributionType = 'money' | 'grain' | 'both';
 
 export interface AcceptedGrain {
@@ -57,9 +75,12 @@ export interface AcceptedGrain {
 
 export interface ContributionDoc {
   id: string;
-  studentId: string;
-  studentName: string;
-  classId: string;
+  contributorType?: 'student' | 'faculty'; // Default 'student'
+  studentId?: string;
+  studentName?: string;
+  facultyId?: string;
+  facultyName?: string;
+  classId?: string | null; // e.g. '1-bcom-a' or 'faculty' / null
   type: ContributionType;
   moneyAmount: number;
   grainType: string | null;
@@ -109,6 +130,7 @@ export interface PublicCampaignSummary {
   totalImpactKg: number;
   totalGrainKg?: number | null; // exposed only if showTotalGrainKgPublicly
   totalMoney?: number | null; // exposed only if showTotalMoneyPublicly
+  facultyTotalEquivalentKg?: number;
   contributorCount: number;
   contributionCount: number;
   progressPercentage: number;
@@ -152,6 +174,7 @@ export interface AuditLogDoc {
   adminUserEmail: string;
   classId?: string | null;
   studentId?: string | null;
+  facultyId?: string | null;
   contributionId?: string | null;
   previousValue?: unknown;
   newValue?: unknown;

@@ -3,14 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import {
-  LayoutDashboard,
-  GraduationCap,
-  History,
-  UserPlus,
-  Briefcase,
-  FileSpreadsheet,
-} from 'lucide-react';
+import { LayoutDashboard, PlusCircle, History, Users } from 'lucide-react';
 
 interface TabItem {
   name: string;
@@ -20,20 +13,18 @@ interface TabItem {
 }
 
 const TABS: TabItem[] = [
-  { name: 'Command Center', href: '/admin', icon: LayoutDashboard, exact: true },
-  { name: '17 Classes', href: '/admin/classes', icon: GraduationCap },
-  { name: 'Faculty Roster', href: '/admin/faculty', icon: Briefcase },
-  { name: 'All Contributions', href: '/admin/contributions', icon: History },
-  { name: 'CR Accounts', href: '/admin/cr-management', icon: UserPlus },
-  { name: 'Reports & CSV', href: '/admin/reports', icon: FileSpreadsheet },
+  { name: 'Faculty Overview', href: '/faculty', icon: LayoutDashboard, exact: true },
+  { name: 'Record Contribution', href: '/faculty/contributions/new', icon: PlusCircle, exact: true },
+  { name: 'Contribution History', href: '/faculty/contributions', icon: History, exact: true },
+  { name: 'Faculty Directory', href: '/faculty/roster', icon: Users },
 ];
 
-export function AdminNavTabs() {
+export function FacultyNavTabs() {
   const pathname = usePathname();
 
   return (
     <div className="mt-3 border-t border-[#f0ede6]">
-      <nav className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 w-full -mb-px">
+      <nav className="grid grid-cols-2 md:grid-cols-4 w-full -mb-px">
         {TABS.map((tab) => {
           const Icon = tab.icon;
           const isActive = tab.exact
@@ -46,15 +37,13 @@ export function AdminNavTabs() {
               href={tab.href}
               className={`group flex items-center justify-center gap-2 py-3 px-2 text-xs sm:text-sm font-semibold transition-all border-b-2 text-center ${
                 isActive
-                  ? 'border-[#155e42] text-[#155e42] font-extrabold bg-[#155e42]/5'
+                  ? 'border-blue-700 text-blue-900 font-extrabold bg-blue-50/50'
                   : 'border-transparent text-[#526359] hover:text-[#0a241b] hover:border-gray-300 hover:bg-black/[0.02]'
               }`}
             >
               <Icon
                 className={`w-4 h-4 flex-shrink-0 transition-colors ${
-                  isActive
-                    ? 'text-[#155e42]'
-                    : 'text-gray-400 group-hover:text-[#0a241b]'
+                  isActive ? 'text-blue-700' : 'text-gray-400 group-hover:text-[#0a241b]'
                 }`}
               />
               <span className="truncate">{tab.name}</span>

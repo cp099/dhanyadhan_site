@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Sprout, Shield, Users, ArrowRight, Lock, Mail, AlertCircle, Sparkles } from 'lucide-react';
+import { Sprout, Shield, Users, GraduationCap, ArrowRight, Lock, Mail, AlertCircle, Sparkles } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -33,6 +33,8 @@ export default function LoginPage() {
         router.push('/admin');
       } else if (data.user.role === 'class_admin') {
         router.push('/cr');
+      } else if (data.user.role === 'faculty') {
+        router.push('/faculty');
       } else {
         router.push('/');
       }
@@ -144,10 +146,26 @@ export default function LoginPage() {
                   <Shield className="w-4 h-4 text-amber-700" />
                   <div>
                     <span className="text-xs font-bold text-amber-950 block">SDG Cell Director</span>
-                    <span className="text-[11px] text-amber-800">Master Administrator (All 17 Classes)</span>
+                    <span className="text-[11px] text-amber-800">Master Administrator (All 17 Classes & Faculty)</span>
                   </div>
                 </div>
                 <span className="text-xs font-semibold text-amber-900">Sign In →</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleLogin('faculty@dhanyadhan.edu')}
+                disabled={loading}
+                className="w-full text-left p-3 rounded-xl border border-blue-300 bg-blue-50/50 hover:bg-blue-100/60 transition-colors flex items-center justify-between"
+              >
+                <div className="flex items-center gap-2">
+                  <GraduationCap className="w-4 h-4 text-blue-700" />
+                  <div>
+                    <span className="text-xs font-bold text-blue-950 block">Faculty Coordinator</span>
+                    <span className="text-[11px] text-blue-800">Department Faculty Control Panel</span>
+                  </div>
+                </div>
+                <span className="text-xs font-semibold text-blue-900">Sign In →</span>
               </button>
 
               <button

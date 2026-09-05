@@ -3,12 +3,15 @@
 import React, { useEffect, useState } from 'react';
 import { X, Download, ShieldCheck, ZoomIn, ZoomOut, RotateCcw, AlertCircle, FileText } from 'lucide-react';
 import { formatCurrency, formatKg, formatDate } from '@/lib/utils';
+import { ContributionDoc } from '@/lib/types';
 
 interface PaymentProofModalProps {
   isOpen: boolean;
   onClose: () => void;
+  contribution?: ContributionDoc | null;
   proofUrl?: string | null;
-  studentName: string;
+  studentName?: string;
+  contributorName?: string;
   classId?: string;
   moneyAmount?: number;
   equivalentKg?: number;
@@ -17,18 +20,18 @@ interface PaymentProofModalProps {
   notes?: string;
 }
 
-export default function PaymentProofModal({
-  isOpen,
-  onClose,
-  proofUrl,
-  studentName,
-  classId,
-  moneyAmount,
-  equivalentKg,
-  createdAt,
-  recordedBy,
-  notes,
-}: PaymentProofModalProps) {
+export default function PaymentProofModal(props: PaymentProofModalProps) {
+  const { isOpen, onClose, contribution } = props;
+  const proofUrl = contribution ? contribution.paymentProofUrl : props.proofUrl;
+  const displayName = contribution
+    ? (contribution.studentName || contribution.facultyName || 'Contributor')
+    : (props.studentName || props.contributorName || 'Contributor');
+  const classId = contribution ? contribution.classId : props.classId;
+  const moneyAmount = contribution ? contribution.moneyAmount : props.moneyAmount;
+  const equivalentKg = contribution ? contribution.equivalentKg : props.equivalentKg;
+  const createdAt = contribution ? contribution.createdAt : props.createdAt;
+  const recordedBy = contribution ? (contribution.recordedByName || contribution.recordedBy) : props.recordedBy;
+  const notes = contribution ? contribution.notes : props.notes;
   const [zoomLevel, setZoomLevel] = useState<number>(1);
 
   // Reset zoom on open
@@ -55,7 +58,7 @@ export default function PaymentProofModal({
     if (!proofUrl) return;
     const a = document.createElement('a');
     a.href = proofUrl;
-    const sanitizedStudent = studentName.toLowerCase().replace(/[^a-z0-9]/g, '-');
+    const sanitizedStudent = displayName.toLowerCase().replace(/[^a-z0-9]/g, '-');
     a.download = `payment-proof-${sanitizedStudent}-${Date.now()}.png`;
     document.body.appendChild(a);
     a.click();
@@ -82,7 +85,7 @@ export default function PaymentProofModal({
                 Payment Verification Proof
               </h3>
               <p className="text-xs text-[#526359] truncate">
-                Monetary contribution recorded for <strong className="text-[#0a241b]">{studentName}</strong>
+                Monetary contribution recorded for <strong className="text-[#0a241b]">{displayName}</strong>
                 {classId ? ` (${classId})` : ''}
               </p>
             </div>
@@ -155,7 +158,7 @@ export default function PaymentProofModal({
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={proofUrl}
-                alt={`Payment proof for ${studentName}`}
+                alt={`Payment proof for ${displayName}`}
                 className="max-h-[50vh] w-auto max-w-full rounded-lg shadow-lg object-contain cursor-zoom-in"
                 onClick={() => setZoomLevel((z) => (z >= 2 ? 1 : z + 0.5))}
               />

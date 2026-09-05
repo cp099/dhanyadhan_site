@@ -18,6 +18,16 @@ import { POST as contributionsPostRoute, GET as contributionsGetRoute } from '..
 import { GET as studentsGetRoute } from '../src/app/api/students/route';
 import { PUT as campaignPutRoute } from '../src/app/api/campaign/route';
 import { POST as crUsersPostRoute } from '../src/app/api/admin/cr-users/route';
+import {
+  GET as facultyGetRoute,
+  POST as facultyPostRoute,
+  PUT as facultyPutRoute,
+  DELETE as facultyDeleteRoute,
+} from '../src/app/api/faculty/route';
+import {
+  GET as facultyContrGetRoute,
+  POST as facultyContrPostRoute,
+} from '../src/app/api/faculty/contributions/route';
 import { AUTH_COOKIE_NAME } from '../src/lib/auth';
 
 function createMockRequest(
@@ -318,6 +328,147 @@ async function runSecuritySuite() {
     res13.status === 400,
     'Invalid non-image payment proof format is REJECTED (HTTP 400)',
     `Expected status 400, got ${res13.status}`
+  );
+
+  // ----------------------------------------------------
+  // TEST 14: Adding and fetching faculty records via /api/faculty
+  // ----------------------------------------------------
+  console.log('Test 14: Adding and fetching faculty records');
+  const req14Add = createMockRequest('http://localhost:3000/api/faculty', 'POST', {
+    userUid: 'sdg-admin-1',
+    body: {
+      name: 'Dr. Ramesh Narayan',
+      designation: 'Associate Professor',
+      department: 'Department of Commerce',
+      employeeId: 'EMP-FAC-999',
+      email: 'ramesh.narayan@dhanyadhan.edu',
+    },
+  });
+  const res14Add = await facultyPostRoute(req14Add);
+  const data14Add = await res14Add.json();
+  const createdFacId = data14Add.faculty?.id;
+  assert(
+    res14Add.status === 201 && !!createdFacId,
+    'SDG Admin can create new faculty member record (HTTP 201)',
+    `Expected status 201 and created ID, got ${res14Add.status}`
+  );
+
+  const req14Get = createMockRequest('http://localhost:3000/api/faculty', 'GET', {
+    userUid: 'faculty-coord-1',
+  });
+  const res14Get = await facultyGetRoute(req14Get);
+  const data14Get = await res14Get.json();
+  const foundFaculty = data14Get.faculty?.some((f: any) => f.id === createdFacId);
+  assert(
+    res14Get.status === 200 && foundFaculty,
+    'Faculty Coordinator can fetch full faculty directory (HTTP 200)',
+    `Expected status 200 with new faculty, got ${res14Get.status}`
+  );
+
+  // ----------------------------------------------------
+  // TEST 15: Faculty monetary contribution with mandatory payment proof
+  // ----------------------------------------------------
+  console.log('Test 15: Mandatory payment screenshot validation for faculty monetary entries');
+  const req15NoProof = createMockRequest('http://localhost:3000/api/faculty/contributions', 'POST', {
+    userUid: 'faculty-coord-1',
+    body: {
+      facultyId: createdFacId,
+      type: 'money',
+      moneyAmount: 500,
+      // paymentProofUrl omitted!
+    },
+  });
+  const res15NoProof = await facultyContrPostRoute(req15NoProof);
+  const data15NoProof = await res15NoProof.json();
+  assert(
+    res15NoProof.status === 400 && data15NoProof.error?.includes('mandatory'),
+    'Faculty monetary entry without screenshot verification is REJECTED (HTTP 400)',
+    `Expected 400 with mandatory message, got ${res15NoProof.status}: ${data15NoProof.error}`
+  );
+
+  const req15WithProof = createMockRequest('http://localhost:3000/api/faculty/contributions', 'POST', {
+    userUid: 'faculty-coord-1',
+    body: {
+      facultyId: createdFacId,
+      type: 'money',
+      moneyAmount: 500,
+      paymentProofUrl: mockProof,
+    },
+  });
+  const res15WithProof = await facultyContrPostRoute(req15WithProof);
+  const data15WithProof = await res15WithProof.json();
+  assert(
+    res15WithProof.status === 201 && data15WithProof.contribution?.paymentProofUrl === mockProof,
+    'Faculty monetary entry with compressed screenshot is ACCEPTED and PERSISTED (HTTP 201)',
+    `Expected 201 with saved payment proof, got ${res15WithProof.status}`
+  );
+
+  // ----------------------------------------------------
+  // TEST 16: Faculty contributions reflect in Public Campaign Summary
+  // ----------------------------------------------------
+  console.log('Test 16: Faculty contributions aggregated into PublicCampaignSummary');
+  const summaryBefore = await getPublicCampaignSummary();
+  const initialFacultyImpact = summaryBefore.facultyTotalEquivalentKg || 0;
+  const initialTotalImpact = summaryBefore.totalImpactKg || 0;
+
+  // Log a 50 KG grain donation for faculty member
+  const req16Grain = createMockRequest('http://localhost:3000/api/faculty/contributions', 'POST', {
+    userUid: 'faculty-coord-1',
+    body: {
+      facultyId: createdFacId,
+      type: 'grain',
+      grainQuantityKg: 50,
+      notes: 'Test Grain Donation',
+    },
+  });
+  const res16Grain = await facultyContrPostRoute(req16Grain);
+  assert(
+    res16Grain.status === 201,
+    'Faculty grain contribution recorded successfully (HTTP 201)',
+    `Expected status 201, got ${res16Grain.status}`
+  );
+
+  const summaryAfter = await getPublicCampaignSummary();
+  const newFacultyImpact = summaryAfter.facultyTotalEquivalentKg || 0;
+  const newTotalImpact = summaryAfter.totalImpactKg || 0;
+
+  assert(
+    newFacultyImpact === initialFacultyImpact + 50 && newTotalImpact === initialTotalImpact + 50,
+    `Public Campaign Summary reflects faculty impact (+50 KG added to total department campaign)`,
+    `Expected faculty impact ${initialFacultyImpact + 50}, got ${newFacultyImpact}; total ${initialTotalImpact + 50}, got ${newTotalImpact}`
+  );
+
+  // ----------------------------------------------------
+  // TEST 17: Class Admin (CR) cannot access or mutate faculty records (HTTP 403)
+  // ----------------------------------------------------
+  console.log('Test 17: Class Admin (CR) blocked from faculty control panel endpoints');
+  const req17CRPost = createMockRequest('http://localhost:3000/api/faculty', 'POST', {
+    userUid: 'cr-2-bcom-afa',
+    body: {
+      name: 'Dr. Unauthorized CR Addition',
+      designation: 'Lecturer',
+    },
+  });
+  const res17CRPost = await facultyPostRoute(req17CRPost);
+  assert(
+    res17CRPost.status === 403,
+    'Class Admin (CR) blocked from adding faculty members (HTTP 403 Forbidden)',
+    `Expected status 403, got ${res17CRPost.status}`
+  );
+
+  const req17CRContr = createMockRequest('http://localhost:3000/api/faculty/contributions', 'POST', {
+    userUid: 'cr-2-bcom-afa',
+    body: {
+      facultyId: createdFacId,
+      type: 'grain',
+      grainQuantityKg: 20,
+    },
+  });
+  const res17CRContr = await facultyContrPostRoute(req17CRContr);
+  assert(
+    res17CRContr.status === 403,
+    'Class Admin (CR) blocked from recording faculty contributions (HTTP 403 Forbidden)',
+    `Expected status 403, got ${res17CRContr.status}`
   );
 
   // ----------------------------------------------------

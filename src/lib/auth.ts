@@ -34,3 +34,12 @@ export function verifyClassAccess(user: UserProfile, targetClassId: string): boo
   }
   return false;
 }
+
+/**
+ * Validates that user has access to Faculty portal / records.
+ * - sdg_admin: full access
+ * - faculty: authorized faculty coordinator
+ */
+export function verifyFacultyAccess(user: UserProfile): boolean {
+  return user.role === 'sdg_admin' || user.role === 'faculty';
+}

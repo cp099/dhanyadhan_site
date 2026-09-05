@@ -66,10 +66,10 @@ export default function CrContributionsPage() {
     loadContributions();
   }, []);
 
-  // Filtered contributions
   const filtered = contributions.filter((c) => {
+    const student = c.studentName || '';
     const matchesSearch =
-      c.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      student.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (c.notes && c.notes.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesType = typeFilter === 'all' || c.type === typeFilter;
     return matchesSearch && matchesType;
@@ -450,14 +450,7 @@ export default function CrContributionsPage() {
         <PaymentProofModal
           isOpen={!!proofModalTarget}
           onClose={() => setProofModalTarget(null)}
-          proofUrl={proofModalTarget.paymentProofUrl}
-          studentName={proofModalTarget.studentName}
-          classId={proofModalTarget.classId}
-          moneyAmount={proofModalTarget.moneyAmount}
-          equivalentKg={proofModalTarget.equivalentKg}
-          createdAt={proofModalTarget.createdAt}
-          recordedBy={proofModalTarget.recordedByName || proofModalTarget.recordedBy}
-          notes={proofModalTarget.notes}
+          contribution={proofModalTarget}
         />
       )}
     </div>
