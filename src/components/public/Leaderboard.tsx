@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { PublicLeaderboardItem, PublicStudentLeaderboardEntry } from '@/lib/types';
+import { PublicLeaderboardItem, PublicStudentLeaderboardEntry, PublicCampaignSummary } from '@/lib/types';
 import { formatKg } from '@/lib/utils';
 import {
   Trophy,
@@ -20,9 +20,10 @@ import {
 
 interface LeaderboardProps {
   items: PublicLeaderboardItem[];
+  summary?: PublicCampaignSummary;
 }
 
-export function Leaderboard({ items }: LeaderboardProps) {
+export function Leaderboard({ items, summary }: LeaderboardProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedClassId, setExpandedClassId] = useState<string | null>(null);
   const [classStudents, setClassStudents] = useState<Record<string, PublicStudentLeaderboardEntry[]>>({});
@@ -444,6 +445,34 @@ export function Leaderboard({ items }: LeaderboardProps) {
           </div>
         )}
       </div>
+
+      {/* Faculty & Staff Collective Impact Card (if faculty has contributed) */}
+      {summary?.facultyTotalEquivalentKg && summary.facultyTotalEquivalentKg > 0 ? (
+        <div className="mt-8 bg-white rounded-3xl p-6 sm:p-8 ambient-shadow border border-[#e6e2d8] flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-[#155e42]/10 text-[#155e42] flex items-center justify-center flex-shrink-0">
+              <ShieldCheck className="w-6 h-6" />
+            </div>
+            <div>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#155e42] block">
+                Department Faculty & Staff Collective Impact
+              </span>
+              <h4 className="text-base sm:text-lg font-black font-headline text-[#0a241b]">
+                Commerce Faculty Roster Donations
+              </h4>
+              <p className="text-xs text-[#526359] mt-0.5">
+                Faculty donations unite directly with student cohorts toward our institutional target.
+              </p>
+            </div>
+          </div>
+          <div className="text-left sm:text-right border-t sm:border-t-0 pt-3 sm:pt-0 border-gray-100">
+            <span className="text-xs text-[#526359] block">Faculty Impact</span>
+            <span className="text-2xl font-black font-headline text-[#155e42]">
+              {formatKg(summary.facultyTotalEquivalentKg)}
+            </span>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

@@ -1,3 +1,10 @@
+import path from 'path';
+import fs from 'fs';
+
+// ISOLATED TEST DATABASE: Running security tests must NEVER mutate or pollute the dev/prod database!
+const TEST_DB_FILE = path.join(process.cwd(), '.data', 'test_security_db.json');
+process.env.DHANYADHAN_DB_FILE = TEST_DB_FILE;
+
 import { NextRequest } from 'next/server';
 import {
   seedDevelopmentData,
@@ -66,9 +73,10 @@ function assert(condition: boolean, testName: string, detail?: string) {
 }
 
 async function runSecuritySuite() {
-  console.log('\n======================================================');
-  console.log('   DHANYADHAN: 10 MANDATORY SECURITY & INTEGRITY TESTS');
-  console.log('======================================================\n');
+  try {
+    console.log('\n======================================================');
+    console.log('   DHANYADHAN: 10 MANDATORY SECURITY & INTEGRITY TESTS');
+    console.log('======================================================\n');
 
   // Step 0: Ensure DB seeded with demo config and test accounts
   await seedDevelopmentData({ applyDemoCampaignConfig: true, sampleStudentsPerClass: 3 });
@@ -527,8 +535,17 @@ async function runSecuritySuite() {
   console.log(`TEST RESULTS: ${testsPassed} PASSED, ${testsFailed} FAILED`);
   console.log('======================================================\n');
 
-  if (testsFailed > 0) {
-    process.exit(1);
+    if (testsFailed > 0) {
+      process.exit(1);
+    }
+  } finally {
+    if (fs.existsSync(TEST_DB_FILE)) {
+      try {
+        fs.unlinkSync(TEST_DB_FILE);
+      } catch (e) {
+        // ignore
+      }
+    }
   }
 }
 

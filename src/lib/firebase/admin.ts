@@ -17,7 +17,10 @@ import { OFFICIAL_CLASSES, INITIAL_UNCONFIGURED_CAMPAIGN, DEMO_PRESET_CAMPAIGN }
 import { calculateEquivalentKg, sortClassesWithRanks, sortStudentsWithRanks } from '../calculations';
 
 const DATA_DIR = path.join(process.cwd(), '.data');
-const DB_FILE = path.join(DATA_DIR, 'local_db.json');
+
+export function getDbFilePath(): string {
+  return process.env.DHANYADHAN_DB_FILE || path.join(DATA_DIR, 'local_db.json');
+}
 
 interface DatabaseSchema {
   campaign: Record<string, CampaignConfig>;
@@ -244,18 +247,20 @@ function getInitialFacultyRoster(): Record<string, FacultyDoc> {
 }
 
 function getDatabase(): DatabaseSchema {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
+  const dbFile = getDbFilePath();
+  const dir = path.dirname(dbFile);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
   }
 
-  if (!fs.existsSync(DB_FILE)) {
+  if (!fs.existsSync(/*turbopackIgnore: true*/ dbFile)) {
     const initial = initializeEmptyDatabase();
-    fs.writeFileSync(DB_FILE, JSON.stringify(initial, null, 2), 'utf-8');
+    fs.writeFileSync(/*turbopackIgnore: true*/ dbFile, JSON.stringify(initial, null, 2), 'utf-8');
     return initial;
   }
 
   try {
-    const raw = fs.readFileSync(DB_FILE, 'utf-8');
+    const raw = fs.readFileSync(/*turbopackIgnore: true*/ dbFile, 'utf-8');
     const parsed = JSON.parse(raw) as DatabaseSchema;
     let mutated = false;
 
@@ -276,6 +281,20 @@ function getDatabase(): DatabaseSchema {
       mutated = true;
     }
 
+    // Mathematical integrity auto-healing: verify summary matches classes + faculty
+    const allClassList = Object.values(parsed.classes || {});
+    const allFacultyList = Object.values(parsed.faculty || {}).filter((f) => f.active);
+    const classesImpactKg = allClassList.reduce((acc, c) => acc + (c.totalEquivalentKg || 0), 0);
+    const facultyImpactKg = allFacultyList.reduce((acc, f) => acc + (f.totalEquivalentKg || 0), 0);
+    const expectedDeptImpact = Math.round((classesImpactKg + facultyImpactKg) * 100) / 100;
+    const currentSummaryImpact = parsed.publicCampaign?.summary?.totalImpactKg || 0;
+
+    if (Math.abs(expectedDeptImpact - currentSummaryImpact) > 0.01) {
+      console.warn(`[Integrity Auto-Heal] Re-syncing aggregates: expected ${expectedDeptImpact} KG, summary had ${currentSummaryImpact} KG`);
+      recalculateAllAggregates(parsed);
+      mutated = true;
+    }
+
     if (mutated) {
       saveDatabase(parsed);
     }
@@ -283,16 +302,18 @@ function getDatabase(): DatabaseSchema {
   } catch (err) {
     console.error('Error reading database file, re-initializing:', err);
     const initial = initializeEmptyDatabase();
-    fs.writeFileSync(DB_FILE, JSON.stringify(initial, null, 2), 'utf-8');
+    fs.writeFileSync(dbFile, JSON.stringify(initial, null, 2), 'utf-8');
     return initial;
   }
 }
 
 function saveDatabase(db: DatabaseSchema): void {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
+  const dbFile = getDbFilePath();
+  const dir = path.dirname(dbFile);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
   }
-  fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), 'utf-8');
+  fs.writeFileSync(dbFile, JSON.stringify(db, null, 2), 'utf-8');
 }
 
 // ----------------- Public Queries -----------------
@@ -482,42 +503,82 @@ export async function getAllContributions(): Promise<ContributionDoc[]> {
 
 // ----------------- ATOMIC AGGREGATION ENGINE -----------------
 
-function updateCascadingAggregates(db: DatabaseSchema, targetClassId: string): void {
-  // 1. Recalculate Class totals from active students
-  const classStudents = Object.values(db.students).filter(
-    (s) => s.classId === targetClassId && s.active
-  );
-  const classObj = db.classes[targetClassId];
-  if (!classObj) return;
+export function recalculateAllAggregates(db: DatabaseSchema): void {
+  // 1. Reset student totals
+  for (const s of Object.values(db.students || {})) {
+    s.totalMoney = 0;
+    s.totalGrainKg = 0;
+    s.totalEquivalentKg = 0;
+    s.contributionCount = 0;
+    s.firstContributedAt = undefined;
+  }
 
-  const totalMoney = classStudents.reduce((acc, s) => acc + (s.totalMoney || 0), 0);
-  const totalGrainKg = classStudents.reduce((acc, s) => acc + (s.totalGrainKg || 0), 0);
-  const totalEquivalentKg = classStudents.reduce(
-    (acc, s) => acc + (s.totalEquivalentKg || 0),
-    0
-  );
-  const contributorCount = classStudents.filter((s) => (s.contributionCount || 0) > 0).length;
-  const contributionCount = classStudents.reduce(
-    (acc, s) => acc + (s.contributionCount || 0),
-    0
-  );
+  // 2. Reset class totals
+  for (const c of Object.values(db.classes || {})) {
+    c.totalMoney = 0;
+    c.totalGrainKg = 0;
+    c.totalEquivalentKg = 0;
+    c.contributorCount = 0;
+    c.contributionCount = 0;
+    c.currentRank = null;
+  }
 
-  classObj.totalMoney = Math.round(totalMoney * 100) / 100;
-  classObj.totalGrainKg = Math.round(totalGrainKg * 100) / 100;
-  classObj.totalEquivalentKg = Math.round(totalEquivalentKg * 100) / 100;
-  classObj.contributorCount = contributorCount;
-  classObj.contributionCount = contributionCount;
-  classObj.updatedAt = new Date().toISOString();
+  // 3. Reset faculty totals
+  for (const f of Object.values(db.faculty || {})) {
+    f.totalMoney = 0;
+    f.totalGrainKg = 0;
+    f.totalEquivalentKg = 0;
+    f.contributionCount = 0;
+    f.firstContributedAt = undefined;
+  }
 
-  // 2. Recalculate Ranks only across classes that have recorded contributions
-  const contributingClasses = Object.values(db.classes).filter((c) => (c.totalEquivalentKg || 0) > 0);
+  // 4. Re-apply all contributions
+  for (const c of Object.values(db.contributions || {})) {
+    const isFaculty = c.contributorType === 'faculty' || !!c.facultyId;
+    if (isFaculty) {
+      if (c.facultyId && db.faculty?.[c.facultyId]) {
+        const fac = db.faculty[c.facultyId];
+        fac.totalMoney = Math.round(((fac.totalMoney || 0) + (c.moneyAmount || 0)) * 100) / 100;
+        fac.totalGrainKg = Math.round(((fac.totalGrainKg || 0) + (c.grainQuantityKg || 0)) * 100) / 100;
+        fac.totalEquivalentKg = Math.round(((fac.totalEquivalentKg || 0) + (c.equivalentKg || 0)) * 100) / 100;
+        fac.contributionCount = (fac.contributionCount || 0) + 1;
+        if (!fac.firstContributedAt || new Date(c.createdAt) < new Date(fac.firstContributedAt)) {
+          fac.firstContributedAt = c.createdAt;
+        }
+      }
+    } else {
+      if (c.studentId && db.students?.[c.studentId]) {
+        const s = db.students[c.studentId];
+        s.totalMoney = Math.round(((s.totalMoney || 0) + (c.moneyAmount || 0)) * 100) / 100;
+        s.totalGrainKg = Math.round(((s.totalGrainKg || 0) + (c.grainQuantityKg || 0)) * 100) / 100;
+        s.totalEquivalentKg = Math.round(((s.totalEquivalentKg || 0) + (c.equivalentKg || 0)) * 100) / 100;
+        s.contributionCount = (s.contributionCount || 0) + 1;
+        if (!s.firstContributedAt || new Date(c.createdAt) < new Date(s.firstContributedAt)) {
+          s.firstContributedAt = c.createdAt;
+        }
+      }
+    }
+  }
+
+  // 5. Aggregate active student totals into class totals
+  for (const classObj of Object.values(db.classes || {})) {
+    const students = Object.values(db.students || {}).filter((s) => s.classId === classObj.id && s.active);
+    classObj.totalMoney = Math.round(students.reduce((acc, s) => acc + (s.totalMoney || 0), 0) * 100) / 100;
+    classObj.totalGrainKg = Math.round(students.reduce((acc, s) => acc + (s.totalGrainKg || 0), 0) * 100) / 100;
+    classObj.totalEquivalentKg = Math.round(students.reduce((acc, s) => acc + (s.totalEquivalentKg || 0), 0) * 100) / 100;
+    classObj.contributorCount = students.filter((s) => (s.contributionCount || 0) > 0).length;
+    classObj.contributionCount = students.reduce((acc, s) => acc + (s.contributionCount || 0), 0);
+  }
+
+  // 6. Rank classes with contributions (only classes with > 0 kg get a rank)
+  const contributingClasses = Object.values(db.classes || {}).filter((c) => (c.totalEquivalentKg || 0) > 0);
   const rankedClasses = sortClassesWithRanks(contributingClasses);
-  Object.values(db.classes).forEach((c) => {
+  Object.values(db.classes || {}).forEach((c) => {
     const ranked = rankedClasses.find((r) => r.id === c.id);
     c.currentRank = ranked ? ranked.currentRank : null;
   });
 
-  // 3. Update publicLeaderboard/allClasses (Only classes with donations appear on the leaderboard)
+  // 7. Update publicLeaderboard.allClasses
   db.publicLeaderboard.allClasses = {
     items: rankedClasses.map((c) => ({
       rank: c.currentRank!,
@@ -531,27 +592,31 @@ function updateCascadingAggregates(db: DatabaseSchema, targetClassId: string): v
     updatedAt: new Date().toISOString(),
   };
 
-  // 4. Update publicClassLeaderboards/{classId}
-  // CRITICAL PRIVACY RULE: Show NAMES AND RANKS ONLY!
-  const sortedStudents = sortStudentsWithRanks(
-    classStudents.filter((s) => s.contributionCount > 0)
-  );
+  // 8. Update publicClassLeaderboards for all classes
+  for (const c of Object.values(db.classes || {})) {
+    const students = Object.values(db.students || {}).filter((s) => s.classId === c.id && s.active);
+    const contributingStudents = students.filter((s) => (s.contributionCount || 0) > 0);
+    const sortedStudents = sortStudentsWithRanks(contributingStudents);
+    db.publicClassLeaderboards[c.id] = {
+      classId: c.id,
+      className: c.name,
+      rank: c.currentRank || null,
+      impactKg: c.totalEquivalentKg,
+      contributorCount: c.contributorCount,
+      students: sortedStudents.map((s) => ({
+        rank: s.rank || 1,
+        name: s.name,
+      })),
+      updatedAt: new Date().toISOString(),
+    };
+  }
 
-  db.publicClassLeaderboards[targetClassId] = {
-    classId: targetClassId,
-    className: classObj.name,
-    rank: classObj.currentRank,
-    impactKg: classObj.totalEquivalentKg,
-    contributorCount: classObj.contributorCount,
-    students: sortedStudents.map((s) => ({
-      rank: s.rank,
-      name: s.name,
-    })),
-    updatedAt: new Date().toISOString(),
-  };
-
-  // 5. Update Department Aggregate & publicCampaign/summary (Classes + Faculty)
+  // 9. Update Department Aggregates & publicCampaign.summary
   updateDepartmentAggregates(db);
+}
+
+function updateCascadingAggregates(db: DatabaseSchema, _targetClassId?: string): void {
+  recalculateAllAggregates(db);
 }
 
 function updateDepartmentAggregates(db: DatabaseSchema): void {
@@ -794,45 +859,8 @@ export async function deleteContribution(
   }
 
   const isFaculty = existing.contributorType === 'faculty' || !!existing.facultyId;
-
-  if (isFaculty) {
-    const faculty = existing.facultyId ? db.faculty?.[existing.facultyId] : null;
-    if (faculty) {
-      faculty.totalMoney = Math.max(0, Math.round(((faculty.totalMoney || 0) - existing.moneyAmount) * 100) / 100);
-      faculty.totalGrainKg = Math.max(0, Math.round(((faculty.totalGrainKg || 0) - (existing.grainQuantityKg || 0)) * 100) / 100);
-      faculty.totalEquivalentKg = Math.max(0, Math.round(((faculty.totalEquivalentKg || 0) - existing.equivalentKg) * 100) / 100);
-      faculty.contributionCount = Math.max(0, (faculty.contributionCount || 0) - 1);
-      if (faculty.contributionCount === 0) {
-        faculty.firstContributedAt = undefined;
-      }
-      faculty.updatedAt = new Date().toISOString();
-    }
-    delete db.contributions[contributionId];
-    updateDepartmentAggregates(db);
-  } else {
-    const student = existing.studentId ? db.students[existing.studentId] : null;
-    const classId = existing.classId;
-
-    if (student) {
-      student.totalMoney = Math.max(0, Math.round(((student.totalMoney || 0) - existing.moneyAmount) * 100) / 100);
-      student.totalGrainKg = Math.max(0, Math.round(((student.totalGrainKg || 0) - (existing.grainQuantityKg || 0)) * 100) / 100);
-      student.totalEquivalentKg = Math.max(0, Math.round(((student.totalEquivalentKg || 0) - existing.equivalentKg) * 100) / 100);
-      student.contributionCount = Math.max(0, (student.contributionCount || 0) - 1);
-      if (student.contributionCount === 0) {
-        student.firstContributedAt = undefined;
-      }
-      student.updatedAt = new Date().toISOString();
-    }
-
-    delete db.contributions[contributionId];
-
-    // Update cascading aggregates
-    if (classId && classId !== 'faculty') {
-      updateCascadingAggregates(db, classId);
-    } else {
-      updateDepartmentAggregates(db);
-    }
-  }
+  delete db.contributions[contributionId];
+  recalculateAllAggregates(db);
 
   // Audit log
   const logId = `log-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
@@ -1342,14 +1370,13 @@ export async function seedDevelopmentData(options?: {
         updatedAt: new Date().toISOString(),
       };
     }
-    updateCascadingAggregates(db, c.id);
   });
 
   if (!db.faculty || Object.keys(db.faculty).length === 0) {
     db.faculty = getInitialFacultyRoster();
   }
 
-  updateDepartmentAggregates(db);
+  recalculateAllAggregates(db);
 
   saveDatabase(db);
   return { success: true, message: `Seeded ${studentsCount} students for all 17 classes and department faculty roster.` };

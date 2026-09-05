@@ -46,6 +46,17 @@ export function ProgressSection({ summary }: ProgressSectionProps) {
                   of {target > 0 ? formatKg(target) : 'Target TBD'}
                 </span>
               </div>
+              {summary.facultyTotalEquivalentKg && summary.facultyTotalEquivalentKg > 0 ? (
+                <div className="flex items-center gap-2 mt-2 text-xs font-semibold text-[#526359]">
+                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+                    Classes: <strong>{formatKg(Math.max(0, current - summary.facultyTotalEquivalentKg))}</strong>
+                  </span>
+                  <span>+</span>
+                  <span className="px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-800 border border-blue-200">
+                    Faculty: <strong>{formatKg(summary.facultyTotalEquivalentKg)}</strong>
+                  </span>
+                </div>
+              ) : null}
             </div>
 
             <div className="text-left sm:text-right">
@@ -83,7 +94,10 @@ export function ProgressSection({ summary }: ProgressSectionProps) {
               </span>
               <span className="font-semibold text-[#0a241b] flex items-center gap-1">
                 <Users className="w-3.5 h-3.5 text-[#155e42]" />
-                {summary.contributorCount.toLocaleString('en-IN')} student changemakers
+                {summary.contributorCount.toLocaleString('en-IN')}{' '}
+                {summary.facultyTotalEquivalentKg && summary.facultyTotalEquivalentKg > 0
+                  ? 'contributors (classes + faculty)'
+                  : 'student changemakers'}
               </span>
             </div>
           </div>
@@ -121,7 +135,9 @@ export function ProgressSection({ summary }: ProgressSectionProps) {
               <div>
                 <span className="text-[11px] font-bold uppercase text-[#526359] block">Active Cohorts</span>
                 <strong className="text-base font-black font-headline text-[#0a241b] block">
-                  17 / 17 Classes Active
+                  {summary.facultyTotalEquivalentKg && summary.facultyTotalEquivalentKg > 0
+                    ? '17 Classes + Faculty'
+                    : '17 Classes United'}
                 </strong>
               </div>
             </div>

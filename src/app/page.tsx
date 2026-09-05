@@ -18,7 +18,7 @@ export default async function HomePage() {
     <div>
       <Hero summary={summary} />
       <ProgressSection summary={summary} />
-      <Leaderboard items={leaderboardItems} />
+      <Leaderboard items={leaderboardItems} summary={summary} />
       <AboutSection />
     </div>
   );
